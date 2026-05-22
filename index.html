@@ -1,0 +1,1280 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>Diagnostic Néo-SCPI — PÉRIAL AM</title>
+<link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;600;700;800&family=DM+Sans:ital,wght@0,300;0,400;0,500;0,600;1,400&display=swap" rel="stylesheet">
+
+<!-- Firebase SDK -->
+<script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-database-compat.js"></script>
+<!-- QR Code -->
+<script src="https://cdn.jsdelivr.net/npm/qrcodejs@1.0.0/qrcode.min.js"></script>
+
+<style>
+/* ─── RESET & BASE ─── */
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+:root {
+  --blue: #1A5CE6;
+  --blue-d: #0E40B0;
+  --blue-l: #EEF3FF;
+  --blue-xl: #F4F7FF;
+  --ink: #0A0F1E;
+  --ink2: #1C2640;
+  --ink3: #374261;
+  --gray: #8491B0;
+  --gray-l: #C5CEDF;
+  --gray-xl: #EDF0F6;
+  --white: #FFFFFF;
+  --border: #E2E7F2;
+  --bg: #F0F3FA;
+  --green: #059669;
+  --green-l: #F0FDF4;
+  --amber: #D97706;
+  --amber-l: #FFF8EC;
+  --red: #E8294C;
+  --red-l: #FFF0F3;
+  --radius: 14px;
+  --radius-sm: 8px;
+  --shadow: 0 4px 24px rgba(26,92,230,0.08);
+  --shadow-lg: 0 12px 48px rgba(26,92,230,0.15);
+  --font-d: 'Syne', sans-serif;
+  --font-b: 'DM Sans', sans-serif;
+}
+html { -webkit-text-size-adjust: 100%; }
+body { font-family: var(--font-b); background: var(--bg); color: var(--ink); min-height: 100svh; overflow-x: hidden; }
+button { font-family: var(--font-b); cursor: pointer; border: none; }
+input, textarea, select { font-family: var(--font-b); }
+textarea { resize: none; }
+* { -webkit-tap-highlight-color: transparent; }
+
+/* ─── SCREENS ─── */
+.screen { display: none; min-height: 100svh; flex-direction: column; }
+.screen.active { display: flex; }
+
+/* ─── HEADER ─── */
+.hdr {
+  background: var(--ink);
+  padding: 0 20px;
+  height: 56px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  position: sticky; top: 0; z-index: 100;
+  flex-shrink: 0;
+}
+.hdr-brand { display: flex; align-items: center; gap: 11px; }
+.logo { width: 34px; height: 34px; background: var(--blue); border-radius: 8px; display: flex; align-items: center; justify-content: center; flex-shrink: 0; }
+.logo svg { width: 18px; height: 18px; }
+.logo-txt { line-height: 1.2; }
+.logo-name { font-family: var(--font-d); font-size: 14px; font-weight: 700; color: var(--white); }
+.logo-sub { font-size: 10px; color: rgba(255,255,255,0.35); text-transform: uppercase; letter-spacing: .07em; }
+.live-badge {
+  display: flex; align-items: center; gap: 7px;
+  background: rgba(26,92,230,0.18);
+  border: 1px solid rgba(26,92,230,0.35);
+  border-radius: 20px; padding: 5px 12px;
+  font-size: 11px; font-weight: 700; color: #7AADFF;
+  letter-spacing: .05em; text-transform: uppercase;
+}
+.live-dot { width: 7px; height: 7px; border-radius: 50%; background: #7AADFF; animation: livepulse 2s infinite; }
+@keyframes livepulse { 0%,100%{opacity:1} 50%{opacity:.3} }
+
+/* ─── TABS ─── */
+.tabs {
+  background: var(--white);
+  border-bottom: 1px solid var(--border);
+  display: flex; overflow-x: auto;
+  position: sticky; top: 56px; z-index: 99;
+  flex-shrink: 0;
+  scrollbar-width: none;
+}
+.tabs::-webkit-scrollbar { display: none; }
+.tab-btn {
+  padding: 14px 20px;
+  background: none; border: none;
+  font-size: 13px; font-weight: 500; color: var(--gray);
+  border-bottom: 2px solid transparent;
+  white-space: nowrap; transition: all .2s;
+}
+.tab-btn.active { color: var(--blue); font-weight: 700; border-bottom-color: var(--blue); }
+
+/* ─── SCROLL BODY ─── */
+.scroll-body { flex: 1; overflow-y: auto; }
+.inner { max-width: 1160px; margin: 0 auto; padding: 24px 16px 64px; }
+.inner-sm { max-width: 480px; margin: 0 auto; padding: 24px 16px 80px; }
+
+/* ─── CARDS ─── */
+.card {
+  background: var(--white);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  box-shadow: var(--shadow);
+}
+.card-pad { padding: 24px; }
+.card + .card { margin-top: 16px; }
+.section-title {
+  font-size: 11px; font-weight: 700;
+  text-transform: uppercase; letter-spacing: .1em; color: var(--gray);
+  display: flex; align-items: center; gap: 10px; margin-bottom: 16px;
+}
+.section-title::after { content:''; flex:1; height:1px; background: var(--border); }
+
+/* ─── BTNS ─── */
+.btn {
+  display: inline-flex; align-items: center; justify-content: center;
+  padding: 13px 24px; border-radius: var(--radius-sm);
+  font-size: 14px; font-weight: 700;
+  transition: all .2s; border: none;
+  gap: 8px;
+}
+.btn-primary { background: var(--blue); color: var(--white); box-shadow: 0 4px 20px rgba(26,92,230,.3); }
+.btn-primary:hover { background: var(--blue-d); transform: translateY(-1px); }
+.btn-primary:active { transform: scale(.97); }
+.btn-ghost { background: rgba(255,255,255,.08); color: rgba(255,255,255,.7); border: 1px solid rgba(255,255,255,.15); }
+.btn-ghost:active { transform: scale(.97); }
+.btn-outline { background: transparent; color: var(--ink2); border: 1.5px solid var(--border); }
+.btn-outline:active { transform: scale(.97); }
+.btn-green { background: var(--green); color: var(--white); box-shadow: 0 4px 20px rgba(5,150,105,.3); }
+.btn-green:active { transform: scale(.97); }
+.btn-sm { padding: 7px 14px; font-size: 12px; border-radius: 6px; }
+.btn-full { width: 100%; }
+.btn-lg { padding: 16px 28px; font-size: 15px; border-radius: 12px; }
+
+/* ─── FIELDS ─── */
+.field { display: flex; flex-direction: column; gap: 7px; }
+.field label { font-size: 11px; font-weight: 700; text-transform: uppercase; letter-spacing: .08em; color: var(--gray); }
+.field input, .field textarea {
+  padding: 13px 15px;
+  border: 1.5px solid var(--border);
+  border-radius: var(--radius-sm);
+  background: var(--gray-xl);
+  font-size: 15px; color: var(--ink);
+  outline: none; transition: all .2s;
+  width: 100%;
+}
+.field input:focus, .field textarea:focus {
+  border-color: var(--blue);
+  background: var(--white);
+  box-shadow: 0 0 0 3px rgba(26,92,230,.1);
+}
+.field input.err { border-color: var(--red); }
+.err-msg { font-size: 11px; color: var(--red); margin-top: -4px; }
+.field textarea { min-height: 72px; }
+
+/* ─── SLIDER ─── */
+.slider-wrap { text-align: center; }
+.slider-big {
+  font-family: var(--font-d); font-size: 72px; font-weight: 800;
+  line-height: 1; transition: color .2s;
+}
+.slider-denom { font-size: 24px; color: var(--gray-l); font-weight: 400; }
+.slider-label { font-size: 11px; text-transform: uppercase; letter-spacing: .1em; color: var(--gray); margin: 6px 0 18px; }
+.slider-track-wrap { position: relative; max-width: 260px; margin: 0 auto; }
+.slider-track-bg { height: 10px; background: var(--gray-xl); border-radius: 5px; overflow: hidden; margin-bottom: -5px; }
+.slider-track-fill { height: 100%; border-radius: 5px; transition: width .12s, background .25s; }
+input[type=range] {
+  -webkit-appearance: none;
+  width: 100%; height: 10px;
+  background: transparent;
+  cursor: pointer; display: block;
+  position: relative; z-index: 2; margin-top: -5px;
+}
+input[type=range]::-webkit-slider-thumb {
+  -webkit-appearance: none;
+  width: 28px; height: 28px;
+  background: var(--white);
+  border: 3px solid var(--blue);
+  border-radius: 50%;
+  box-shadow: 0 2px 14px rgba(0,0,0,.15);
+  transition: transform .15s;
+}
+input[type=range]:active::-webkit-slider-thumb { transform: scale(1.2); }
+.slider-scale { display: flex; justify-content: space-between; max-width: 260px; margin: 8px auto 0; font-size: 10px; color: var(--gray-l); }
+.ctx-mkt { background: var(--gray-xl); border-radius: var(--radius-sm); padding: 10px 14px; display: flex; justify-content: space-between; align-items: center; margin-top: 14px; }
+.ctx-mkt span:first-child { font-size: 12px; color: var(--gray); }
+.ctx-mkt span:last-child { font-size: 13px; font-weight: 700; color: var(--ink2); }
+
+/* ─── BADGE ─── */
+.badge {
+  display: inline-flex; align-items: center;
+  padding: 5px 12px; border-radius: 20px;
+  font-size: 11px; font-weight: 700;
+  text-transform: uppercase; letter-spacing: .05em;
+}
+.badge-red { background: var(--red-l); color: var(--red); }
+.badge-amber { background: var(--amber-l); color: var(--amber); }
+.badge-green { background: var(--green-l); color: var(--green); }
+.badge-blue { background: var(--blue-l); color: var(--blue); }
+.badge-gray { background: var(--gray-xl); color: var(--gray); }
+
+/* ─── KPI GRID ─── */
+.kpi-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(130px,1fr)); gap: 12px; margin-bottom: 20px; }
+.kpi { background: var(--white); border: 1px solid var(--border); border-radius: var(--radius); padding: 18px 16px; box-shadow: var(--shadow); }
+.kpi-val { font-family: var(--font-d); font-size: 34px; font-weight: 800; color: var(--blue); line-height: 1; }
+.kpi-lbl { font-size: 11px; color: var(--gray); text-transform: uppercase; letter-spacing: .07em; margin-top: 5px; }
+
+/* ─── HBAR ─── */
+.hbar-bg { height: 8px; background: var(--gray-xl); border-radius: 4px; overflow: hidden; }
+.hbar-fg { height: 100%; border-radius: 4px; transition: width .6s cubic-bezier(.4,0,.2,1); }
+
+/* ─── PROGRESS DOTS ─── */
+.dots { display: flex; gap: 5px; flex-wrap: wrap; justify-content: center; }
+.dot { width: 9px; height: 9px; border-radius: 50%; background: var(--gray-xl); transition: background .3s; }
+.dot.done { background: var(--blue); }
+.dot.current { background: var(--blue-l); border: 2px solid var(--blue); }
+
+/* ─── CHARTS GRID ─── */
+.charts-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; margin-bottom: 16px; }
+@media(max-width:720px) { .charts-grid { grid-template-columns: 1fr; } }
+
+/* ─── RADAR SVG ─── */
+.radar-wrap { width: 100%; max-width: 340px; margin: 0 auto; }
+
+/* ─── BENCH TABLE ─── */
+.bench-wrap { overflow-x: auto; }
+table.bench { width: 100%; border-collapse: collapse; font-size: 12px; }
+.bench th { padding: 10px 8px; text-align: center; font-size: 10px; font-weight: 700; text-transform: uppercase; letter-spacing: .06em; color: var(--gray); border-bottom: 1px solid var(--border); background: var(--gray-xl); white-space: nowrap; }
+.bench th:first-child, .bench th:nth-child(2) { text-align: left; }
+.bench td { padding: 10px 8px; text-align: center; border-bottom: 1px solid var(--gray-xl); vertical-align: middle; }
+.bench td:first-child, .bench td:nth-child(2) { text-align: left; }
+.bench tr.is-perial { background: rgba(26,92,230,.04); }
+.rank-num { display: inline-flex; width: 26px; height: 26px; border-radius: 6px; align-items: center; justify-content: center; font-size: 11px; font-weight: 800; background: var(--gray-xl); color: var(--ink2); }
+.rank-num.g1 { background: #FEF3C7; color: #D97706; }
+.rank-num.g2 { background: #F1F5F9; color: #64748B; }
+.rank-num.g3 { background: #FEF0E8; color: #C05621; }
+.scell { display: inline-flex; width: 40px; height: 26px; border-radius: 6px; align-items: center; justify-content: center; font-size: 11px; font-weight: 700; }
+.scell.lo { background: var(--red-l); color: var(--red); }
+.scell.mi { background: var(--amber-l); color: var(--amber); }
+.scell.hi { background: var(--green-l); color: var(--green); }
+
+/* ─── PRIO GRID ─── */
+.prio-grid { display: grid; grid-template-columns: repeat(3,1fr); gap: 14px; margin-bottom: 16px; }
+@media(max-width:640px) { .prio-grid { grid-template-columns: 1fr; } }
+.prio-col { background: var(--white); border: 1px solid var(--border); border-radius: var(--radius); overflow: hidden; box-shadow: var(--shadow); }
+.prio-head { padding: 14px 18px; border-bottom: 1px solid var(--border); }
+.prio-head-r { border-top: 3px solid var(--red); background: var(--red-l); }
+.prio-head-a { border-top: 3px solid var(--amber); background: var(--amber-l); }
+.prio-head-g { border-top: 3px solid var(--green); background: var(--green-l); }
+.prio-head h5 { font-family: var(--font-d); font-size: 14px; font-weight: 700; }
+.prio-head p { font-size: 11px; color: var(--gray); margin-top: 2px; }
+.prio-item { display: flex; justify-content: space-between; align-items: center; padding: 11px 18px; border-bottom: 1px solid var(--gray-xl); font-size: 13px; color: var(--ink3); }
+.prio-item:last-child { border-bottom: none; }
+.prio-score { font-family: var(--font-d); font-weight: 800; font-size: 15px; }
+
+/* ─── DETAIL PANEL ─── */
+.detail-grid { display: grid; grid-template-columns: 220px 1fr; gap: 16px; align-items: start; }
+@media(max-width:640px) { .detail-grid { grid-template-columns: 1fr; } }
+.p-list-item {
+  width: 100%; padding: 13px 16px; border: none; border-bottom: 1px solid var(--gray-xl);
+  text-align: left; background: transparent; cursor: pointer; transition: background .15s;
+}
+.p-list-item:hover { background: var(--blue-xl); }
+.p-list-item.active { background: var(--blue-l); }
+.p-list-item:last-child { border-bottom: none; }
+.p-list-name { font-size: 13px; font-weight: 600; color: var(--ink2); }
+.p-list-role { font-size: 11px; color: var(--gray); margin-top: 2px; }
+.p-list-status { font-size: 10px; font-weight: 700; text-transform: uppercase; margin-top: 4px; }
+
+/* ─── PARTICIPANT CHIP ─── */
+.chip { display: inline-flex; align-items: center; gap: 7px; background: var(--blue-l); border: 1px solid rgba(26,92,230,.2); border-radius: 20px; padding: 5px 12px 5px 9px; font-size: 12px; color: var(--ink2); }
+.chip-dot { width: 7px; height: 7px; border-radius: 50%; }
+.chips { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 16px; }
+
+/* ─── WAITING STATE ─── */
+.waiting-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
+@media(max-width:640px) { .waiting-grid { grid-template-columns: 1fr; } }
+
+/* ─── PULSE DOTS ─── */
+.pulse-dots { display: flex; gap: 6px; justify-content: center; }
+.pulse-dot { width: 9px; height: 9px; border-radius: 50%; background: var(--blue); animation: pd 1.2s infinite; }
+@keyframes pd { 0%,100%{opacity:.2;transform:scale(.8)} 50%{opacity:1;transform:scale(1.2)} }
+
+/* ─── TOAST ─── */
+#toast {
+  position: fixed; bottom: 24px; left: 50%; transform: translateX(-50%) translateY(20px);
+  background: var(--ink); color: var(--white);
+  padding: 12px 20px; border-radius: 10px;
+  font-size: 13px; font-weight: 500;
+  box-shadow: 0 8px 32px rgba(0,0,0,.3);
+  z-index: 9999; white-space: nowrap;
+  display: flex; align-items: center; gap: 10px;
+  opacity: 0; transition: all .28s cubic-bezier(.4,0,.2,1);
+  pointer-events: none;
+}
+#toast.show { opacity: 1; transform: translateX(-50%) translateY(0); }
+
+/* ─── STEP PROGRESS BAR ─── */
+.step-bar { height: 3px; background: var(--border); flex-shrink: 0; }
+.step-bar-fill { height: 100%; background: var(--blue); transition: width .4s cubic-bezier(.4,0,.2,1); }
+
+/* ─── SCALE GUIDE ─── */
+.scale-item { display: flex; align-items: center; gap: 14px; padding: 13px 16px; background: var(--white); border: 1px solid var(--border); border-radius: var(--radius-sm); box-shadow: 0 2px 8px rgba(0,0,0,.03); }
+.scale-pill { width: 56px; height: 36px; border-radius: 8px; display: flex; align-items: center; justify-content: center; flex-shrink: 0; }
+.scale-pill span { color: var(--white); font-family: var(--font-d); font-weight: 800; font-size: 13px; }
+.scale-name { font-weight: 700; font-size: 13px; color: var(--ink2); }
+.scale-desc { font-size: 12px; color: var(--gray); margin-top: 2px; }
+
+/* ─── SUMMARY ─── */
+.sum-item { display: flex; justify-content: space-between; align-items: center; padding: 13px 18px; border-bottom: 1px solid var(--gray-xl); }
+.sum-item:last-child { border-bottom: none; }
+.sum-name { font-size: 13px; font-weight: 600; color: var(--ink2); }
+.sum-sub { font-size: 11px; color: var(--gray); margin-top: 2px; }
+.sum-score { font-family: var(--font-d); font-weight: 800; font-size: 24px; }
+
+/* ─── THANK YOU ─── */
+.ty-wrap { flex: 1; display: flex; flex-direction: column; align-items: center; justify-content: center; padding: 40px 24px; text-align: center; }
+.ty-icon { width: 80px; height: 80px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 36px; margin: 0 auto 24px; background: rgba(5,150,105,.12); border: 2px solid rgba(5,150,105,.3); }
+.ty-h1 { font-family: var(--font-d); font-size: 32px; font-weight: 800; color: var(--white); margin-bottom: 12px; }
+.ty-p { font-size: 15px; color: rgba(255,255,255,.5); max-width: 280px; line-height: 1.65; margin: 0 auto 32px; }
+
+/* ─── LANDING ─── */
+.landing { min-height: 100svh; background: linear-gradient(150deg, var(--ink) 0%, #0E2050 55%, var(--ink) 100%); display: flex; flex-direction: column; align-items: center; justify-content: center; padding: 32px 24px; text-align: center; }
+.landing-logo { margin-bottom: 28px; }
+.landing h1 { font-family: var(--font-d); font-size: clamp(28px,6vw,44px); font-weight: 800; color: var(--white); margin-bottom: 12px; line-height: 1.15; }
+.landing-sub { font-size: 15px; color: rgba(255,255,255,.45); max-width: 320px; margin: 0 auto 40px; line-height: 1.6; }
+.landing-btns { display: flex; flex-direction: column; gap: 12px; width: 100%; max-width: 320px; }
+.landing-footer { margin-top: 48px; font-size: 11px; color: rgba(255,255,255,.2); text-transform: uppercase; letter-spacing: .1em; }
+
+/* ─── JOIN FORM ─── */
+.join-card { background: rgba(255,255,255,.07); backdrop-filter: blur(16px); border: 1px solid rgba(255,255,255,.1); border-radius: 20px; padding: 28px 24px; width: 100%; max-width: 380px; }
+.join-field { margin-bottom: 18px; }
+.join-field label { display: block; font-size: 11px; font-weight: 700; text-transform: uppercase; letter-spacing: .1em; color: rgba(255,255,255,.45); margin-bottom: 8px; }
+.join-field label .req { color: var(--red); }
+.join-field input { width: 100%; padding: 14px 16px; border-radius: 10px; border: 1.5px solid rgba(255,255,255,.12); background: rgba(255,255,255,.08); color: var(--white); font-size: 15px; outline: none; transition: border .2s; }
+.join-field input::placeholder { color: rgba(255,255,255,.25); }
+.join-field input:focus { border-color: var(--blue); }
+.join-field input.err { border-color: var(--red); }
+.join-err { font-size: 11px; color: var(--red); margin-top: 5px; }
+
+/* ─── CRITERION CARD ─── */
+.crit-card { background: var(--white); border: 1px solid var(--border); border-radius: var(--radius); box-shadow: var(--shadow); overflow: hidden; margin-bottom: 14px; }
+.crit-card-top { padding: 22px 20px 18px; }
+.crit-num { font-size: 10px; font-weight: 700; text-transform: uppercase; letter-spacing: .12em; color: var(--blue); margin-bottom: 6px; }
+.crit-name { font-family: var(--font-d); font-size: 20px; font-weight: 800; color: var(--ink); margin-bottom: 6px; line-height: 1.2; }
+.crit-desc { font-size: 13px; color: var(--gray); line-height: 1.6; margin-bottom: 16px; }
+.crit-score-area { padding: 20px; border-top: 1px solid var(--border); background: var(--gray-xl); }
+.crit-fields { padding: 20px; border-top: 1px solid var(--border); display: flex; flex-direction: column; gap: 14px; }
+.crit-nav { padding: 16px 20px; border-top: 1px solid var(--border); display: flex; gap: 10px; }
+
+/* ─── RESPONSIVE DETAIL TABLE ─── */
+.crit-detail-row { display: grid; grid-template-columns: 1fr 3fr 52px 110px; align-items: center; gap: 14px; padding: 12px 20px; border-bottom: 1px solid var(--gray-xl); }
+.crit-detail-row:last-child { border-bottom: none; }
+@media(max-width:600px) { .crit-detail-row { grid-template-columns: 1fr 52px; } .crit-detail-row .hbar-wrap, .crit-detail-row .badge-wrap { display: none; } }
+</style>
+</head>
+<body>
+
+<!-- ════════════════════════════════════════════
+     SCREEN: LANDING (Admin home)
+════════════════════════════════════════════ -->
+<div id="s-landing" class="screen active">
+  <div class="landing">
+    <div class="landing-logo">
+      <div class="logo" style="width:56px;height:56px;border-radius:14px;margin:0 auto;">
+        <svg viewBox="0 0 24 24" width="28" height="28" fill="none"><path d="M12 3L4 8.5V21H9.5V15H14.5V21H20V8.5L12 3Z" fill="white"/></svg>
+      </div>
+    </div>
+    <h1>Séminaire<br>Plan Stratégique</h1>
+    <p class="landing-sub">Auto-diagnostic néo-SCPI — Session live participative</p>
+    <div class="landing-btns">
+      <button class="btn btn-primary btn-lg btn-full" onclick="launchSession()">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polygon points="5,3 19,12 5,21"/></svg>
+        Lancer une nouvelle session
+      </button>
+      <button class="btn btn-ghost btn-lg btn-full" onclick="resumeSession()" id="btn-resume" style="display:none">
+        Reprendre la session en cours
+      </button>
+    </div>
+    <div class="landing-footer">PÉRIAL Asset Management · 2025</div>
+  </div>
+</div>
+
+<!-- ════════════════════════════════════════════
+     SCREEN: ADMIN (restitution + detail)
+════════════════════════════════════════════ -->
+<div id="s-admin" class="screen">
+  <div class="hdr">
+    <div class="hdr-brand">
+      <div class="logo"><svg viewBox="0 0 24 24" width="18" height="18" fill="none"><path d="M12 3L4 8.5V21H9.5V15H14.5V21H20V8.5L12 3Z" fill="white"/></svg></div>
+      <div class="logo-txt">
+        <div class="logo-name">PÉRIAL AM</div>
+        <div class="logo-sub">Séminaire Stratégique</div>
+      </div>
+    </div>
+    <div style="display:flex;align-items:center;gap:8px;">
+      <div class="live-badge"><span class="live-dot"></span><span>Live · <span id="a-live-count">0</span></span></div>
+      <button class="btn btn-sm btn-ghost" onclick="showScreen('s-landing')" style="color:rgba(255,255,255,.5);font-size:11px;padding:6px 10px;border-radius:6px;">Accueil</button>
+    </div>
+  </div>
+  <div class="tabs">
+    <button class="tab-btn active" id="tab-restit" onclick="switchAdminTab('restit')">Restitution collective</button>
+    <button class="tab-btn" id="tab-detail" onclick="switchAdminTab('detail')">Détail participants</button>
+  </div>
+
+  <!-- RESTITUTION -->
+  <div id="admin-restit" class="scroll-body">
+    <div class="inner">
+
+      <!-- KPIs -->
+      <div class="kpi-grid" id="a-kpis">
+        <div class="kpi"><div class="kpi-val" id="kpi-done">0</div><div class="kpi-lbl">Évaluations soumises</div></div>
+        <div class="kpi"><div class="kpi-val" id="kpi-avg">—</div><div class="kpi-lbl">Score moyen Périal</div></div>
+        <div class="kpi"><div class="kpi-val" id="kpi-rank">—</div><div class="kpi-lbl">Classement / néo-SCPI</div></div>
+        <div class="kpi"><div class="kpi-val" id="kpi-prio">—</div><div class="kpi-lbl">Axes prioritaires</div></div>
+      </div>
+
+      <!-- Waiting state -->
+      <div id="a-waiting">
+        <div class="waiting-grid">
+          <div class="card card-pad" style="text-align:center;">
+            <div class="section-title" style="justify-content:center;margin-bottom:20px;">QR Code Session</div>
+            <div id="qr-container" style="display:inline-block;padding:12px;background:#fff;border-radius:12px;border:1px solid var(--border);"></div>
+            <div style="margin-top:16px;font-size:12px;color:var(--gray);">Scannez pour participer</div>
+            <div id="join-url" style="margin-top:8px;background:var(--gray-xl);border-radius:8px;padding:8px 12px;font-size:11px;color:var(--ink3);word-break:break-all;font-family:monospace;"></div>
+            <div style="margin-top:20px;color:var(--gray);font-size:13px;">En attente des participants…</div>
+            <div style="margin-top:12px;" class="pulse-dots">
+              <div class="pulse-dot" style="animation-delay:0s"></div>
+              <div class="pulse-dot" style="animation-delay:.2s"></div>
+              <div class="pulse-dot" style="animation-delay:.4s"></div>
+            </div>
+          </div>
+          <div class="card card-pad">
+            <div class="section-title">Comment ça marche</div>
+            <div style="display:flex;flex-direction:column;gap:14px;">
+              <div style="display:flex;gap:12px;align-items:flex-start;">
+                <div style="width:28px;height:28px;border-radius:8px;background:var(--blue-l);color:var(--blue);display:flex;align-items:center;justify-content:center;font-weight:800;font-size:13px;flex-shrink:0;margin-top:1px;">1</div>
+                <div style="font-size:13px;color:var(--ink3);line-height:1.55;">Les participants scannent le QR code avec leur téléphone</div>
+              </div>
+              <div style="display:flex;gap:12px;align-items:flex-start;">
+                <div style="width:28px;height:28px;border-radius:8px;background:var(--blue-l);color:var(--blue);display:flex;align-items:center;justify-content:center;font-weight:800;font-size:13px;flex-shrink:0;margin-top:1px;">2</div>
+                <div style="font-size:13px;color:var(--ink3);line-height:1.55;">Ils renseignent leur nom et fonction (obligatoires)</div>
+              </div>
+              <div style="display:flex;gap:12px;align-items:flex-start;">
+                <div style="width:28px;height:28px;border-radius:8px;background:var(--blue-l);color:var(--blue);display:flex;align-items:center;justify-content:center;font-weight:800;font-size:13px;flex-shrink:0;margin-top:1px;">3</div>
+                <div style="font-size:13px;color:var(--ink3);line-height:1.55;">Ils notent la SCPI sur les 10 critères clés pas à pas</div>
+              </div>
+              <div style="display:flex;gap:12px;align-items:flex-start;">
+                <div style="width:28px;height:28px;border-radius:8px;background:var(--blue-l);color:var(--blue);display:flex;align-items:center;justify-content:center;font-weight:800;font-size:13px;flex-shrink:0;margin-top:1px;">4</div>
+                <div style="font-size:13px;color:var(--ink3);line-height:1.55;">Les résultats s'actualisent ici en temps réel automatiquement</div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Results state -->
+      <div id="a-results" style="display:none;">
+        <div class="charts-grid">
+          <!-- Radar -->
+          <div class="card card-pad">
+            <div class="section-title">Radar Périal vs Marché</div>
+            <div class="radar-wrap"><svg id="radar-svg" viewBox="0 0 320 320" style="width:100%;display:block;"></svg></div>
+            <div style="display:flex;gap:16px;justify-content:center;margin-top:14px;flex-wrap:wrap;">
+              <div style="display:flex;align-items:center;gap:7px;font-size:12px;color:var(--ink3);">
+                <div style="width:20px;height:3px;background:var(--blue);border-radius:2px;"></div>Périal (consensus)
+              </div>
+              <div style="display:flex;align-items:center;gap:7px;font-size:12px;color:var(--ink3);">
+                <div style="width:20px;height:0;border-top:2px dashed #00C27A;"></div>Marché néo-SCPI
+              </div>
+            </div>
+          </div>
+          <!-- QR mini + participants -->
+          <div class="card card-pad">
+            <div class="section-title">Session en cours</div>
+            <div style="display:flex;gap:16px;align-items:flex-start;">
+              <div id="qr-mini" style="flex-shrink:0;padding:8px;background:var(--white);border:1px solid var(--border);border-radius:10px;"></div>
+              <div style="flex:1;">
+                <div style="font-size:12px;color:var(--gray);margin-bottom:10px;">Participants</div>
+                <div id="a-participants-list" style="display:flex;flex-direction:column;gap:6px;max-height:220px;overflow-y:auto;"></div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Criteria detail -->
+        <div class="card" style="margin-bottom:16px;">
+          <div style="padding:18px 20px;border-bottom:1px solid var(--border);background:var(--gray-xl);border-radius:var(--radius) var(--radius) 0 0;">
+            <div style="font-family:var(--font-d);font-size:15px;font-weight:700;color:var(--ink);">Scores par critère</div>
+          </div>
+          <div id="a-crit-rows"></div>
+        </div>
+
+        <!-- Priority -->
+        <div class="prio-grid" id="a-prio-grid"></div>
+
+        <!-- Benchmark -->
+        <div class="card" style="overflow:hidden;margin-bottom:16px;">
+          <div style="padding:16px 20px;border-bottom:1px solid var(--border);background:var(--gray-xl);display:flex;justify-content:space-between;align-items:center;">
+            <div style="font-family:var(--font-d);font-size:15px;font-weight:700;">Benchmark Néo-SCPI</div>
+            <div style="font-size:11px;color:var(--gray);">Données publiques 2024–2025</div>
+          </div>
+          <div class="bench-wrap"><table class="bench" id="a-bench-table"></table></div>
+          <div style="padding:10px 20px;font-size:10px;color:var(--gray);border-top:1px solid var(--border);">* Score Périal = moyenne des évaluations participants. Scores néo-SCPI basés sur données publiques (rendements, frais, reporting, digitalisation 2024–2025). Capital non garanti.</div>
+        </div>
+      </div>
+
+    </div>
+  </div>
+
+  <!-- DETAIL -->
+  <div id="admin-detail" class="scroll-body" style="display:none;">
+    <div class="inner">
+      <div class="detail-grid">
+        <div class="card" style="overflow:hidden;">
+          <div style="padding:14px 16px;border-bottom:1px solid var(--border);background:var(--gray-xl);">
+            <div style="font-family:var(--font-d);font-size:13px;font-weight:700;" id="d-count">Participants (0)</div>
+          </div>
+          <div id="d-list"></div>
+        </div>
+        <div id="d-panel">
+          <div class="card card-pad" style="text-align:center;padding:48px 24px;">
+            <div style="font-size:40px;margin-bottom:16px;">←</div>
+            <div style="font-size:14px;color:var(--gray);">Sélectionnez un participant pour voir son évaluation</div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ════════════════════════════════════════════
+     SCREEN: JOIN (participant entry)
+════════════════════════════════════════════ -->
+<div id="s-join" class="screen">
+  <div style="flex:1;background:linear-gradient(155deg,var(--ink) 0%,#0E2050 55%,var(--ink) 100%);display:flex;flex-direction:column;align-items:center;justify-content:center;padding:32px 24px;">
+    <div class="logo" style="width:52px;height:52px;border-radius:13px;margin:0 auto 20px;">
+      <svg viewBox="0 0 24 24" width="26" height="26" fill="none"><path d="M12 3L4 8.5V21H9.5V15H14.5V21H20V8.5L12 3Z" fill="white"/></svg>
+    </div>
+    <h1 style="font-family:var(--font-d);font-size:28px;font-weight:800;color:var(--white);text-align:center;margin-bottom:8px;">Auto-diagnostic</h1>
+    <p style="font-size:14px;color:rgba(255,255,255,.45);text-align:center;margin-bottom:32px;max-width:280px;line-height:1.6;">Séminaire Stratégique Périal<br>Néo-SCPI 2025</p>
+    <div class="join-card">
+      <div class="join-field">
+        <label>Prénom & Nom <span class="req">*</span></label>
+        <input type="text" id="j-name" placeholder="Marie Dupont" autocomplete="name" />
+        <div class="join-err" id="j-name-err" style="display:none;">Ce champ est obligatoire</div>
+      </div>
+      <div class="join-field">
+        <label>Fonction <span class="req">*</span></label>
+        <input type="text" id="j-role" placeholder="Directeur Commercial" autocomplete="organization-title" />
+        <div class="join-err" id="j-role-err" style="display:none;">Ce champ est obligatoire</div>
+      </div>
+      <button class="btn btn-primary btn-full btn-lg" onclick="joinSession()">Participer au diagnostic →</button>
+    </div>
+  </div>
+</div>
+
+<!-- ════════════════════════════════════════════
+     SCREEN: FORM (participant diagnostic)
+════════════════════════════════════════════ -->
+<div id="s-form" class="screen">
+  <div class="hdr">
+    <div class="hdr-brand">
+      <div class="logo"><svg viewBox="0 0 24 24" width="18" height="18" fill="none"><path d="M12 3L4 8.5V21H9.5V15H14.5V21H20V8.5L12 3Z" fill="white"/></svg></div>
+      <div class="logo-txt"><div class="logo-name">PÉRIAL AM</div><div class="logo-sub">Diagnostic</div></div>
+    </div>
+    <div id="f-step-label" style="font-size:12px;color:rgba(255,255,255,.4);"></div>
+  </div>
+  <div class="step-bar"><div class="step-bar-fill" id="f-prog" style="width:0%"></div></div>
+  <div class="scroll-body">
+    <div class="inner-sm" id="f-content"></div>
+  </div>
+</div>
+
+<!-- ════════════════════════════════════════════
+     SCREEN: THANKS
+════════════════════════════════════════════ -->
+<div id="s-thanks" class="screen">
+  <div style="flex:1;background:linear-gradient(155deg,var(--ink) 0%,#0E2050 100%);display:flex;flex-direction:column;">
+    <div class="hdr">
+      <div class="hdr-brand">
+        <div class="logo"><svg viewBox="0 0 24 24" width="18" height="18" fill="none"><path d="M12 3L4 8.5V21H9.5V15H14.5V21H20V8.5L12 3Z" fill="white"/></svg></div>
+        <div class="logo-txt"><div class="logo-name">PÉRIAL AM</div></div>
+      </div>
+    </div>
+    <div class="ty-wrap">
+      <div class="ty-icon">✓</div>
+      <div class="ty-h1">Merci !</div>
+      <p class="ty-p">Votre évaluation a bien été enregistrée et intégrée à la restitution collective en temps réel.</p>
+      <div class="pulse-dots">
+        <div class="pulse-dot" style="animation-delay:0s"></div>
+        <div class="pulse-dot" style="animation-delay:.2s"></div>
+        <div class="pulse-dot" style="animation-delay:.4s"></div>
+      </div>
+      <div style="margin-top:16px;font-size:12px;color:rgba(255,255,255,.25);">Redirection vers la restitution…</div>
+    </div>
+  </div>
+</div>
+
+<!-- ════════════════════════════════════════════
+     SCREEN: PARTICIPANT RESULTS
+════════════════════════════════════════════ -->
+<div id="s-presults" class="screen">
+  <div class="hdr">
+    <div class="hdr-brand">
+      <div class="logo"><svg viewBox="0 0 24 24" width="18" height="18" fill="none"><path d="M12 3L4 8.5V21H9.5V15H14.5V21H20V8.5L12 3Z" fill="white"/></svg></div>
+      <div class="logo-txt"><div class="logo-name">PÉRIAL AM</div><div class="logo-sub">Restitution</div></div>
+    </div>
+    <div class="live-badge"><span class="live-dot"></span><span>Live · <span id="p-live-count">0</span></span></div>
+  </div>
+  <div class="scroll-body">
+    <div class="inner-sm">
+      <div style="font-family:var(--font-d);font-size:22px;font-weight:800;color:var(--ink);margin-bottom:4px;">Restitution collective</div>
+      <div style="font-size:13px;color:var(--gray);margin-bottom:20px;" id="p-sub-txt"></div>
+      <div class="kpi-grid" style="grid-template-columns:1fr 1fr;">
+        <div class="kpi"><div class="kpi-val" id="p-kpi-avg">—</div><div class="kpi-lbl">Score moyen</div></div>
+        <div class="kpi"><div class="kpi-val" id="p-kpi-rank">—</div><div class="kpi-lbl">Classement</div></div>
+      </div>
+      <div class="card card-pad" style="margin-bottom:16px;">
+        <div class="section-title">Radar — Périal vs Marché</div>
+        <svg id="p-radar-svg" viewBox="0 0 300 300" style="width:100%;display:block;"></svg>
+        <div style="display:flex;gap:16px;justify-content:center;margin-top:14px;flex-wrap:wrap;">
+          <div style="display:flex;align-items:center;gap:7px;font-size:12px;color:var(--ink3);"><div style="width:20px;height:3px;background:var(--blue);border-radius:2px;"></div>Périal</div>
+          <div style="display:flex;align-items:center;gap:7px;font-size:12px;color:var(--ink3);"><div style="width:20px;height:0;border-top:2px dashed #00C27A;"></div>Néo-SCPI</div>
+        </div>
+      </div>
+      <div class="card" style="overflow:hidden;">
+        <div style="padding:16px 18px;border-bottom:1px solid var(--border);font-family:var(--font-d);font-size:15px;font-weight:700;">Scores par critère</div>
+        <div id="p-crit-rows"></div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- TOAST -->
+<div id="toast"><div id="toast-dot" style="width:8px;height:8px;border-radius:50%;background:var(--green);flex-shrink:0;"></div><span id="toast-msg"></span></div>
+
+<script>
+// ═══════════════════════════════════════════════════════
+// FIREBASE CONFIG — vos clés
+// ═══════════════════════════════════════════════════════
+const FIREBASE_CONFIG = {
+  apiKey: "AIzaSyB9CAEyeoxNJj3EVJa3lUq4zt77QxUcE_0",
+  authDomain: "perial-diagnostic.firebaseapp.com",
+  databaseURL: "https://perial-diagnostic-default-rtdb.europe-west1.firebasedatabase.app",
+  projectId: "perial-diagnostic",
+  storageBucket: "perial-diagnostic.firebasestorage.app",
+  messagingSenderId: "984936799369",
+  appId: "1:984936799369:web:e15701b7cf7e98ee0dfa58"
+};
+
+// ═══════════════════════════════════════════════════════
+// DATA
+// ═══════════════════════════════════════════════════════
+const CRITERIA = [
+  {id:"rendement", name:"Performance produit", short:"Perf.", desc:"Le TRI (Taux de Rentabilité Interne) mesure la performance globale incluant revenus locatifs et plus-value. Les meilleures néo-SCPI visent un TRI > 6% net."},
+  {id:"distrib",   name:"Niveau de distribution", short:"Distrib.", desc:"Régularité et hauteur du taux de distribution annuel (TD). Les leaders néo-SCPI dépassent 7% de TD en 2024, versé mensuellement pour les meilleurs."},
+  {id:"frais",     name:"Absence de frais d'entrée", short:"Frais", desc:"Les néo-SCPI ont supprimé les frais de souscription (5–12% chez les SCPI classiques). Un score 10 = 0% de frais d'entrée, amélioration immédiate du rendement."},
+  {id:"liquidite", name:"Liquidité / Facilité de sortie", short:"Liquid.", desc:"Capacité à revendre ses parts dans des délais raisonnables. Les leaders proposent des fenêtres de rachat trimestrielles avec délais < 3 mois."},
+  {id:"transpa",   name:"Transparence", short:"Transpa.", desc:"Qualité et fréquence du reporting : lettres trimestrielles détaillées, données patrimoniales accessibles, politique d'investissement lisible, communication proactive."},
+  {id:"access",    name:"Accessibilité", short:"Access.", desc:"Ticket minimum d'investissement (idéalement < 500€, voire achat de fractions) et disponibilité sur plateformes digitales et en assurance-vie."},
+  {id:"collecte",  name:"Rapidité collecte / déploiement", short:"Collecte", desc:"Capacité à lever les capitaux rapidement et à les investir efficacement. La trésorerie non déployée dilue le rendement : les leaders déploient en < 3 mois."},
+  {id:"innov",     name:"Innovation produit", short:"Innov.", desc:"Thématiques différenciantes (santé, logistique, résidentiel géré), engagement ESG documenté et crédible, diversification géographique hors France."},
+  {id:"expclient", name:"Expérience client", short:"Exp. CX", desc:"Parcours de souscription 100% digital, espace associé en ligne performant, service client réactif, communication personnalisée et proactive."},
+  {id:"fordistrib",name:"Force de distribution", short:"Distribut.", desc:"Présence sur les grandes plateformes (Louve, Ramify, Meilleurtaux…), référencement CGP, disponibilité en unités de compte assurance-vie."},
+];
+
+const SCALE = [
+  {range:"1–2", label:"Très faible", color:"#E8294C", desc:"Très en retard vs. marché néo-SCPI"},
+  {range:"3–4", label:"Faible",      color:"#F97316", desc:"En deçà des standards du marché"},
+  {range:"5–6", label:"Moyen",       color:"#F59E0B", desc:"Dans la moyenne du marché traditionnel"},
+  {range:"7–8", label:"Bon",         color:"#22C55E", desc:"Proche des meilleurs acteurs"},
+  {range:"9–10",label:"Excellent",   color:"#1A5CE6", desc:"Niveau best-in-class néo-SCPI"},
+];
+
+const BENCHMARK = [
+  {name:"Iroko Zen",          tag:"Iroko",          s:{rendement:9,distrib:9,frais:10,liquidite:8,transpa:8,access:9,collecte:8,innov:7,expclient:8,fordistrib:8}},
+  {name:"Remake Live",        tag:"Remake AM",      s:{rendement:9,distrib:9,frais:10,liquidite:8,transpa:8,access:8,collecte:8,innov:8,expclient:8,fordistrib:8}},
+  {name:"Transitions Europe", tag:"Arkéa REIM",     s:{rendement:9,distrib:9,frais:7, liquidite:7,transpa:7,access:7,collecte:9,innov:9,expclient:7,fordistrib:8}},
+  {name:"Mistral Sélection",  tag:"Swiss Life REIM",s:{rendement:8,distrib:8,frais:10,liquidite:7,transpa:8,access:9,collecte:7,innov:7,expclient:8,fordistrib:9}},
+  {name:"Novaxia Néo",        tag:"Novaxia Invest.",s:{rendement:7,distrib:7,frais:10,liquidite:7,transpa:8,access:9,collecte:7,innov:8,expclient:8,fordistrib:7}},
+  {name:"Corum Origin",       tag:"Corum AM",       s:{rendement:8,distrib:7,frais:5, liquidite:6,transpa:9,access:7,collecte:8,innov:8,expclient:7,fordistrib:9}},
+];
+
+// ═══════════════════════════════════════════════════════
+// HELPERS
+// ═══════════════════════════════════════════════════════
+const avg = arr => arr.length ? arr.reduce((a,b)=>a+b,0)/arr.length : 0;
+const scpiAvg = s => avg(CRITERIA.map(c => s[c.id]||0));
+const mktAvg = cid => avg(BENCHMARK.map(b => b.s[cid]));
+const scoreColor = v => v<5?"#E8294C":v<7?"#F59E0B":v<9?"#22C55E":"#1A5CE6";
+const scoreBg    = v => v<5?"#FFF0F3":v<7?"#FFF8EC":v<9?"#F0FDF4":"#EEF3FF";
+const scoreLabel = v => v<6?"Prioritaire":v<=8?"Optimisation":"Capitalisation";
+const scoreClass = v => v<6?"badge-red":v<=8?"badge-amber":"badge-green";
+const scellClass = v => v<6?"lo":v<=8?"mi":"hi";
+const rankClass  = i => i===0?"g1":i===1?"g2":i===2?"g3":"";
+const $ = id => document.getElementById(id);
+function genId() { return Math.random().toString(36).slice(2,9).toUpperCase(); }
+
+// ═══════════════════════════════════════════════════════
+// FIREBASE INIT
+// ═══════════════════════════════════════════════════════
+let db, sessionRef, SESSION_ID = "current";
+try {
+  firebase.initializeApp(FIREBASE_CONFIG);
+  db = firebase.database();
+  sessionRef = db.ref("sessions/" + SESSION_ID);
+} catch(e) { console.warn("Firebase init error:", e); }
+
+// ═══════════════════════════════════════════════════════
+// STATE
+// ═══════════════════════════════════════════════════════
+let appState = { participants: {} };
+let currentParticipantId = null;
+let pScores = {}, pComments = {}, pImprovements = {};
+let formStep = 0; // 0=guide, 1-10=crit, 11=summary
+let selectedDetailId = null;
+let adminCurrentTab = "restit";
+let qrGenerated = false;
+let qrMiniGenerated = false;
+
+// ═══════════════════════════════════════════════════════
+// SCREEN ROUTER
+// ═══════════════════════════════════════════════════════
+function showScreen(id) {
+  document.querySelectorAll(".screen").forEach(s => s.classList.remove("active"));
+  $(id).classList.add("active");
+}
+
+// ═══════════════════════════════════════════════════════
+// FIREBASE LISTENER
+// ═══════════════════════════════════════════════════════
+function startListening() {
+  if (!db) return;
+  sessionRef.on("value", snap => {
+    const data = snap.val() || {participants:{}};
+    appState = { participants: data.participants || {} };
+    updateAdminUI();
+    updateParticipantResultsUI();
+  });
+}
+
+// ═══════════════════════════════════════════════════════
+// LANDING
+// ═══════════════════════════════════════════════════════
+async function checkExistingSession() {
+  if (!db) return;
+  const snap = await sessionRef.once("value");
+  if (snap.exists()) $("btn-resume").style.display = "";
+}
+checkExistingSession();
+
+async function launchSession() {
+  if (db) await sessionRef.set({ participants: {}, createdAt: Date.now(), active: true });
+  appState = { participants: {} };
+  showScreen("s-admin");
+  startListening();
+  generateQR();
+}
+
+async function resumeSession() {
+  showScreen("s-admin");
+  startListening();
+  generateQR();
+}
+
+// ═══════════════════════════════════════════════════════
+// QR CODE
+// ═══════════════════════════════════════════════════════
+function getJoinUrl() {
+  const base = window.location.href.split("?")[0];
+  return base + "?join=1";
+}
+
+function generateQR() {
+  if (qrGenerated) return;
+  const url = getJoinUrl();
+  $("join-url").textContent = url;
+  new QRCode($("qr-container"), { text: url, width: 180, height: 180, colorDark: "#0A0F1E", colorLight: "#ffffff", correctLevel: QRCode.CorrectLevel.M });
+  qrGenerated = true;
+}
+
+function generateQRMini() {
+  if (qrMiniGenerated) return;
+  const url = getJoinUrl();
+  new QRCode($("qr-mini"), { text: url, width: 100, height: 100, colorDark: "#0A0F1E", colorLight: "#ffffff", correctLevel: QRCode.CorrectLevel.M });
+  qrMiniGenerated = true;
+}
+
+// ═══════════════════════════════════════════════════════
+// ADMIN TABS
+// ═══════════════════════════════════════════════════════
+function switchAdminTab(tab) {
+  adminCurrentTab = tab;
+  $("tab-restit").classList.toggle("active", tab==="restit");
+  $("tab-detail").classList.toggle("active", tab==="detail");
+  $("admin-restit").style.display = tab==="restit" ? "" : "none";
+  $("admin-detail").style.display = tab==="detail" ? "" : "none";
+  if (tab === "detail") renderDetailList();
+}
+
+// ═══════════════════════════════════════════════════════
+// ADMIN UI
+// ═══════════════════════════════════════════════════════
+function getParticipantsArray() {
+  return Object.values(appState.participants || {});
+}
+
+function updateAdminUI() {
+  const all = getParticipantsArray();
+  const done = all.filter(p => p.submitted);
+
+  $("a-live-count").textContent = done.length;
+
+  // KPIs
+  const avgScores = computeAvgScores(done);
+  const globalAvg = done.length ? avg(CRITERIA.map(c => avgScores[c.id]||0)) : null;
+  $("kpi-done").textContent = done.length + "/" + all.length;
+  $("kpi-avg").textContent = globalAvg ? globalAvg.toFixed(1) : "—";
+
+  const allRanked = buildRanked(avgScores, done.length > 0);
+  const rank = done.length ? allRanked.findIndex(x => x.isPerial) + 1 : null;
+  $("kpi-rank").textContent = rank ? rank + "/" + allRanked.length : "—";
+
+  const prio = { red:[], amber:[], green:[] };
+  if (done.length) CRITERIA.forEach(c => {
+    const v = avgScores[c.id];
+    if (v < 6) prio.red.push({c,v}); else if (v <= 8) prio.amber.push({c,v}); else prio.green.push({c,v});
+  });
+  $("kpi-prio").textContent = done.length ? prio.red.length : "—";
+
+  if (done.length === 0) {
+    $("a-waiting").style.display = "";
+    $("a-results").style.display = "none";
+  } else {
+    $("a-waiting").style.display = "none";
+    $("a-results").style.display = "";
+    generateQRMini();
+    drawRadar($("radar-svg"), avgScores, 320);
+    renderCritRows($("a-crit-rows"), avgScores);
+    renderPrioGrid(prio);
+    renderBenchTable(allRanked);
+    renderParticipantsList(all);
+  }
+
+  if (adminCurrentTab === "detail") renderDetailList();
+}
+
+function computeAvgScores(done) {
+  const r = {};
+  CRITERIA.forEach(c => {
+    const vals = done.map(p => (p.scores && p.scores[c.id]) ? p.scores[c.id] : 5);
+    r[c.id] = done.length ? avg(vals) : 0;
+  });
+  return r;
+}
+
+function buildRanked(avgScores, includePerial) {
+  const list = [...BENCHMARK];
+  if (includePerial) list.push({ name:"Périal (consensus)", tag:"PÉRIAL AM", s: avgScores, isPerial: true });
+  return list.map(x => ({ ...x, avg: scpiAvg(x.s) })).sort((a,b) => b.avg - a.avg);
+}
+
+function renderParticipantsList(all) {
+  $("a-participants-list").innerHTML = all.map(p => `
+    <div style="display:flex;justify-content:space-between;align-items:center;padding:7px 10px;background:${p.submitted?"var(--green-l)":"var(--amber-l)"};border-radius:8px;font-size:12px;">
+      <span style="color:var(--ink2);font-weight:500;">${p.name}</span>
+      <span style="color:${p.submitted?"var(--green)":"var(--amber)"};font-weight:700;font-size:10px;text-transform:uppercase;">${p.submitted?"Soumis":"En cours"}</span>
+    </div>`).join("") || '<div style="font-size:12px;color:var(--gray);font-style:italic;">Aucun participant</div>';
+}
+
+function renderCritRows(container, avgScores) {
+  container.innerHTML = CRITERIA.map(c => {
+    const v = avgScores[c.id] || 0;
+    const col = scoreColor(v);
+    return `<div class="crit-detail-row">
+      <div><div style="font-size:13px;font-weight:600;color:var(--ink2);">${c.name}</div>
+      <div style="font-size:11px;color:var(--gray);margin-top:2px;">Marché : ${mktAvg(c.id).toFixed(1)}/10</div></div>
+      <div class="hbar-wrap">
+        <div class="hbar-bg"><div class="hbar-fg" style="width:${(v/10*100).toFixed(0)}%;background:${col};"></div></div>
+      </div>
+      <div style="font-family:var(--font-d);font-weight:800;font-size:20px;color:${col};text-align:right;">${v.toFixed(1)}</div>
+      <div class="badge-wrap"><span class="badge ${scoreClass(v)}">${scoreLabel(v)}</span></div>
+    </div>`;
+  }).join("");
+}
+
+function renderPrioGrid(prio) {
+  const cols = [
+    { key:"red",   head:"prio-head-r", title:"Pistes prioritaires",     sub:"Score < 6 — Actions urgentes",         col:"var(--red)",   items: prio.red.sort((a,b)=>a.v-b.v) },
+    { key:"amber", head:"prio-head-a", title:"Axes d'optimisation",      sub:"Score 6–8 — Potentiel identifié",       col:"var(--amber)", items: prio.amber.sort((a,b)=>a.v-b.v) },
+    { key:"green", head:"prio-head-g", title:"Points de capitalisation", sub:"Score > 8 — Atouts à valoriser",        col:"var(--green)", items: prio.green.sort((a,b)=>b.v-a.v) },
+  ];
+  $("a-prio-grid").innerHTML = cols.map(col => `
+    <div class="prio-col">
+      <div class="prio-head ${col.head}">
+        <h5 style="color:${col.col};">${col.title}</h5>
+        <p>${col.sub}</p>
+      </div>
+      ${col.items.length === 0
+        ? `<div class="prio-item"><span style="color:var(--gray);font-style:italic;">Aucun critère</span></div>`
+        : col.items.map(({c,v}) => `<div class="prio-item"><span>${c.name}</span><span class="prio-score" style="color:${col.col};">${v.toFixed(1)}</span></div>`).join("")}
+    </div>`).join("");
+}
+
+function renderBenchTable(ranked) {
+  const shorts = CRITERIA.map(c => c.short);
+  $("a-bench-table").innerHTML = `
+    <thead><tr>
+      <th>#</th><th>SCPI</th>
+      ${shorts.map(s=>`<th>${s}</th>`).join("")}
+      <th>Moy.</th>
+    </tr></thead>
+    <tbody>${ranked.map((x,i) => `
+      <tr class="${x.isPerial?"is-perial":""}">
+        <td><span class="rank-num ${rankClass(i)}">${i+1}</span></td>
+        <td>
+          <div style="font-weight:700;font-size:13px;color:${x.isPerial?"var(--blue)":"var(--ink)"};">${x.isPerial?"★ ":""}${x.name}</div>
+          <div style="font-size:10px;color:var(--gray);">${x.tag}</div>
+        </td>
+        ${CRITERIA.map(c => { const v=x.s[c.id]||0; return `<td><span class="scell ${scellClass(v)}">${(+v).toFixed(1)}</span></td>`; }).join("")}
+        <td style="font-family:var(--font-d);font-weight:800;font-size:15px;color:${x.isPerial?"var(--blue)":"var(--ink)"};">${x.avg.toFixed(1)}</td>
+      </tr>`).join("")}
+    </tbody>`;
+}
+
+// ═══════════════════════════════════════════════════════
+// RADAR SVG
+// ═══════════════════════════════════════════════════════
+function drawRadar(svgEl, perialScores, size) {
+  const N = CRITERIA.length;
+  const cx = size/2, cy = size/2, r = size*0.34;
+  const angle = i => (i*2*Math.PI/N) - Math.PI/2;
+  const pt = (score, i) => { const a=angle(i), ratio=score/10; return [cx+r*ratio*Math.cos(a), cy+r*ratio*Math.sin(a)]; };
+  const mktScores = Object.fromEntries(CRITERIA.map(c => [c.id, mktAvg(c.id)]));
+
+  const grid = [2,4,6,8,10].map(lv =>
+    CRITERIA.map((_,i) => pt(lv,i)).map((p,i,arr) =>
+      `<line x1="${p[0].toFixed(1)}" y1="${p[1].toFixed(1)}" x2="${arr[(i+1)%N][0].toFixed(1)}" y2="${arr[(i+1)%N][1].toFixed(1)}" stroke="#E2E7F2" stroke-width="1"/>`
+    ).join("")
+  ).join("");
+
+  const spokes = CRITERIA.map((_,i) => {
+    const [px,py] = pt(10,i);
+    return `<line x1="${cx}" y1="${cy}" x2="${px.toFixed(1)}" y2="${py.toFixed(1)}" stroke="#E2E7F2" stroke-width="1"/>`;
+  }).join("");
+
+  const polyPath = scores => CRITERIA.map((c,i) => pt(scores[c.id]||0,i)).map((p,i) => `${i===0?"M":"L"}${p[0].toFixed(1)},${p[1].toFixed(1)}`).join(" ") + "Z";
+
+  const dots = CRITERIA.map((c,i) => { const [px,py]=pt(perialScores[c.id]||0,i); return `<circle cx="${px.toFixed(1)}" cy="${py.toFixed(1)}" r="4" fill="#1A5CE6" stroke="#fff" stroke-width="2"/>`; }).join("");
+
+  const labels = CRITERIA.map((c,i) => {
+    const a=angle(i), labR=r+22, lx=cx+labR*Math.cos(a), ly=cy+labR*Math.sin(a);
+    const anchor = Math.abs(Math.cos(a))<0.1?"middle":Math.cos(a)>0?"start":"end";
+    return `<text x="${lx.toFixed(1)}" y="${(ly+4).toFixed(1)}" text-anchor="${anchor}" font-size="${size>300?9:8}" font-family="'DM Sans',sans-serif" fill="#374261" font-weight="500">${c.short}</text>`;
+  }).join("");
+
+  svgEl.innerHTML = grid + spokes
+    + `<path d="${polyPath(mktScores)}" fill="rgba(0,194,122,0.1)" stroke="#00C27A" stroke-width="1.5" stroke-dasharray="4 3"/>`
+    + `<path d="${polyPath(perialScores)}" fill="rgba(26,92,230,0.13)" stroke="#1A5CE6" stroke-width="2.5"/>`
+    + dots + labels;
+}
+
+// ═══════════════════════════════════════════════════════
+// DETAIL TAB
+// ═══════════════════════════════════════════════════════
+function renderDetailList() {
+  const all = getParticipantsArray();
+  $("d-count").textContent = `Participants (${all.length})`;
+  $("d-list").innerHTML = all.length === 0
+    ? `<div style="padding:20px;font-size:12px;color:var(--gray);font-style:italic;">Aucun participant</div>`
+    : all.map(p => `
+      <button class="p-list-item ${selectedDetailId===p.id?"active":""}" onclick="selectDetail('${p.id}')">
+        <div class="p-list-name">${p.name}</div>
+        <div class="p-list-role">${p.role}</div>
+        <div class="p-list-status" style="color:${p.submitted?"var(--green)":"var(--amber)"};">${p.submitted?"Soumis":"En attente"}</div>
+      </button>`).join("");
+}
+
+function selectDetail(pid) {
+  selectedDetailId = pid;
+  renderDetailList();
+  const p = appState.participants[pid];
+  if (!p) return;
+  if (!p.submitted) {
+    $("d-panel").innerHTML = `<div class="card card-pad" style="text-align:center;padding:40px 24px;">
+      <div style="font-size:32px;margin-bottom:14px;">⏳</div>
+      <div style="font-size:14px;color:var(--gray);">${p.name} n'a pas encore soumis son évaluation.</div>
+    </div>`;
+    return;
+  }
+  const personalAvg = avg(CRITERIA.map(c => p.scores[c.id]||0));
+  $("d-panel").innerHTML = `
+    <div class="card" style="overflow:hidden;">
+      <div style="background:var(--ink);padding:22px 24px;">
+        <div style="font-family:var(--font-d);font-size:20px;font-weight:800;color:var(--white);">${p.name}</div>
+        <div style="font-size:13px;color:rgba(255,255,255,.45);margin-top:3px;">${p.role}</div>
+        <div style="margin-top:12px;font-size:12px;color:rgba(255,255,255,.4);">Score moyen personnel : <span style="color:var(--white);font-weight:700;">${personalAvg.toFixed(1)}/10</span></div>
+      </div>
+      ${CRITERIA.map(c => {
+        const v = p.scores[c.id]||0;
+        const comment = p.comments && p.comments[c.id] || "";
+        const improv  = p.improvements && p.improvements[c.id] || "";
+        const col = scoreColor(v);
+        return `<div style="padding:14px 24px;border-bottom:1px solid var(--gray-xl);">
+          <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px;">
+            <div style="font-weight:600;font-size:13px;color:var(--ink2);">${c.name}</div>
+            <div style="display:flex;align-items:center;gap:8px;">
+              <span style="font-family:var(--font-d);font-weight:800;font-size:22px;color:${col};">${v}</span>
+              <span class="badge ${scoreClass(v)}">${scoreLabel(v)}</span>
+            </div>
+          </div>
+          <div class="hbar-bg"><div class="hbar-fg" style="width:${(v/10*100)}%;background:${col};"></div></div>
+          ${comment ? `<div style="margin-top:8px;font-size:12px;color:var(--ink3);background:var(--gray-xl);padding:8px 10px;border-radius:6px;">💬 ${comment}</div>` : ""}
+          ${improv  ? `<div style="margin-top:6px;font-size:12px;color:var(--ink3);background:var(--green-l);padding:8px 10px;border-radius:6px;">→ ${improv}</div>` : ""}
+        </div>`;
+      }).join("")}
+    </div>`;
+}
+
+// ═══════════════════════════════════════════════════════
+// PARTICIPANT: JOIN
+// ═══════════════════════════════════════════════════════
+async function joinSession() {
+  const name = $("j-name").value.trim();
+  const role = $("j-role").value.trim();
+  let valid = true;
+  if (!name) { $("j-name").classList.add("err"); $("j-name-err").style.display=""; valid=false; } else { $("j-name").classList.remove("err"); $("j-name-err").style.display="none"; }
+  if (!role) { $("j-role").classList.add("err"); $("j-role-err").style.display=""; valid=false; } else { $("j-role").classList.remove("err"); $("j-role-err").style.display="none"; }
+  if (!valid) return;
+
+  const pid = genId();
+  currentParticipantId = pid;
+  pScores = Object.fromEntries(CRITERIA.map(c => [c.id, 5]));
+  pComments = {}; pImprovements = {};
+
+  const pData = { id:pid, name, role, submitted:false, scores:{}, comments:{}, improvements:{}, joinedAt: Date.now() };
+  if (db) await sessionRef.child("participants/" + pid).set(pData);
+
+  formStep = 0;
+  showScreen("s-form");
+  renderFormStep();
+}
+
+// ═══════════════════════════════════════════════════════
+// PARTICIPANT: FORM
+// ═══════════════════════════════════════════════════════
+function renderFormStep() {
+  const TOTAL = CRITERIA.length;
+  const pct = formStep === 0 ? 0 : (formStep / TOTAL) * 100;
+  $("f-prog").style.width = pct + "%";
+
+  if (formStep === 0) {
+    $("f-step-label").textContent = "Guide de notation";
+    renderGuideStep();
+  } else if (formStep <= TOTAL) {
+    $("f-step-label").textContent = formStep + " / " + TOTAL;
+    renderCritStep(formStep - 1);
+  } else {
+    $("f-step-label").textContent = "Récapitulatif";
+    renderSummaryStep();
+  }
+}
+
+function renderGuideStep() {
+  $("f-content").innerHTML = `
+    <div style="font-family:var(--font-d);font-size:24px;font-weight:800;color:var(--ink);margin-bottom:8px;">Avant de commencer</div>
+    <p style="font-size:14px;color:var(--ink3);margin-bottom:24px;line-height:1.65;">Vous allez noter votre SCPI sur <strong>10 critères clés</strong> des néo-SCPI. Chaque critère est noté de <strong>1 à 10</strong>. Voici comment interpréter l'échelle :</p>
+    <div style="display:flex;flex-direction:column;gap:10px;margin-bottom:28px;">
+      ${SCALE.map(s => `
+        <div class="scale-item">
+          <div class="scale-pill" style="background:${s.color};"><span>${s.range}</span></div>
+          <div><div class="scale-name">${s.label}</div><div class="scale-desc">${s.desc}</div></div>
+        </div>`).join("")}
+    </div>
+    <div style="background:var(--blue-l);border-radius:12px;padding:14px 16px;font-size:13px;color:var(--ink3);margin-bottom:28px;line-height:1.6;">
+      Ces notes sont calibrées sur le positionnement des meilleures néo-SCPI (Iroko Zen, Remake Live, Transitions Europe…) telles qu'observé sur le marché en 2024-2025.
+    </div>
+    <button class="btn btn-primary btn-full btn-lg" onclick="nextStep()">Commencer le diagnostic →</button>`;
+}
+
+function renderCritStep(idx) {
+  const c = CRITERIA[idx];
+  const v = pScores[c.id];
+  const col = scoreColor(v);
+
+  // dots
+  const dots = CRITERIA.map((_,i) =>
+    `<div class="dot ${i < idx ? "done" : i === idx ? "current" : ""}"></div>`
+  ).join("");
+
+  $("f-content").innerHTML = `
+    <div style="font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.12em;color:var(--blue);margin-bottom:8px;">Critère ${idx+1} / ${CRITERIA.length}</div>
+    <div style="font-family:var(--font-d);font-size:22px;font-weight:800;color:var(--ink);margin-bottom:8px;line-height:1.2;">${c.name}</div>
+    <div style="font-size:13px;color:var(--gray);line-height:1.65;margin-bottom:20px;">${c.desc}</div>
+    <div class="dots" style="margin-bottom:22px;">${dots}</div>
+
+    <div class="card" style="margin-bottom:14px;">
+      <div style="padding:24px 20px 20px;">
+        <div class="slider-wrap">
+          <div class="slider-big" id="sv" style="color:${col};">${v}<span class="slider-denom">/10</span></div>
+          <div class="slider-label" id="sl-lbl">${SCALE.find(s=>{const[lo,hi]=s.range.split("–").map(Number);return v>=lo&&v<=hi})?.label||""}</div>
+          <div class="slider-track-wrap">
+            <div class="slider-track-bg"><div class="slider-track-fill" id="sf" style="width:${((v-1)/9*100).toFixed(0)}%;background:${col};"></div></div>
+            <input type="range" min="1" max="10" value="${v}" id="score-range" oninput="updateSlider(this.value,'${c.id}')">
+          </div>
+          <div class="slider-scale"><span>1</span><span>5</span><span>10</span></div>
+        </div>
+        <div style="text-align:center;margin-top:16px;">
+          <span class="badge ${scoreClass(v)}" id="score-badge">${scoreLabel(v)}</span>
+        </div>
+        <div class="ctx-mkt">
+          <span>Moyenne néo-SCPI</span>
+          <span>${mktAvg(c.id).toFixed(1)} / 10</span>
+        </div>
+      </div>
+    </div>
+
+    <div style="display:flex;flex-direction:column;gap:12px;margin-bottom:20px;">
+      <div class="field">
+        <label>Analyse qualitative (optionnel)</label>
+        <textarea id="f-comment" placeholder="Votre appréciation sur ce critère…" rows="2">${pComments[c.id]||""}</textarea>
+      </div>
+      <div class="field">
+        <label>Piste d'amélioration (optionnel)</label>
+        <textarea id="f-improv" placeholder="Leviers et actions à envisager…" rows="2">${pImprovements[c.id]||""}</textarea>
+      </div>
+    </div>
+
+    <div style="display:flex;gap:10px;">
+      ${formStep > 1 ? `<button class="btn btn-outline btn-lg" style="flex:1;" onclick="prevStep()">← Retour</button>` : ""}
+      <button class="btn ${formStep===CRITERIA.length?"btn-green":"btn-primary"} btn-lg" style="flex:2;" onclick="saveCritAndNext('${c.id}')">
+        ${formStep === CRITERIA.length ? "Voir le récapitulatif →" : "Critère suivant →"}
+      </button>
+    </div>`;
+}
+
+function renderSummaryStep() {
+  const myAvg = avg(CRITERIA.map(c => pScores[c.id]||0));
+  $("f-content").innerHTML = `
+    <div style="font-family:var(--font-d);font-size:24px;font-weight:800;color:var(--ink);margin-bottom:4px;">Récapitulatif</div>
+    <p style="font-size:13px;color:var(--gray);margin-bottom:20px;">Vérifiez vos notes avant de soumettre</p>
+    <div class="card" style="margin-bottom:16px;overflow:hidden;">
+      ${CRITERIA.map(c => {
+        const v = pScores[c.id]||0; const col = scoreColor(v);
+        return `<div class="sum-item">
+          <div><div class="sum-name">${c.name}</div><div class="sum-sub">${scoreLabel(v)}</div></div>
+          <div class="sum-score" style="color:${col};">${v}</div>
+        </div>`;
+      }).join("")}
+    </div>
+    <div style="background:var(--blue-l);border-radius:12px;padding:14px 18px;margin-bottom:24px;display:flex;justify-content:space-between;align-items:center;">
+      <span style="font-size:14px;color:var(--ink3);">Votre score moyen</span>
+      <span style="font-family:var(--font-d);font-weight:800;font-size:22px;color:var(--blue);">${myAvg.toFixed(1)} / 10</span>
+    </div>
+    <div style="display:flex;gap:10px;">
+      <button class="btn btn-outline btn-lg" style="flex:1;" onclick="prevStep()">← Retour</button>
+      <button class="btn btn-green btn-lg" style="flex:2;" onclick="submitEval()">Valider mon évaluation ✓</button>
+    </div>`;
+}
+
+function updateSlider(val, cid) {
+  val = parseInt(val);
+  pScores[cid] = val;
+  const col = scoreColor(val);
+  const pct = ((val-1)/9*100).toFixed(0);
+  const lbl = SCALE.find(s=>{const[lo,hi]=s.range.split("–").map(Number);return val>=lo&&val<=hi})?.label||"";
+  $("sv").innerHTML = val + '<span class="slider-denom">/10</span>';
+  $("sv").style.color = col;
+  $("sf").style.width = pct + "%";
+  $("sf").style.background = col;
+  $("sl-lbl").textContent = lbl;
+  const badge = $("score-badge");
+  badge.textContent = scoreLabel(val);
+  badge.className = "badge " + scoreClass(val);
+  // Update thumb color
+  document.querySelector("input[type=range]").style.setProperty("--thumb-color", col);
+}
+
+function saveCritAndNext(cid) {
+  const commentEl = $("f-comment"), improvEl = $("f-improv");
+  if (commentEl) pComments[cid] = commentEl.value;
+  if (improvEl)  pImprovements[cid] = improvEl.value;
+  nextStep();
+}
+
+function nextStep() { formStep++; $("f-content").scrollTop = 0; window.scrollTo(0,0); renderFormStep(); }
+function prevStep() { formStep--; $("f-content").scrollTop = 0; window.scrollTo(0,0); renderFormStep(); }
+
+async function submitEval() {
+  if (!currentParticipantId) return;
+  if (db) {
+    await sessionRef.child("participants/" + currentParticipantId).update({
+      submitted: true,
+      scores: pScores,
+      comments: pComments,
+      improvements: pImprovements,
+      submittedAt: Date.now()
+    });
+  }
+  showScreen("s-thanks");
+  setTimeout(() => {
+    showScreen("s-presults");
+    startParticipantListening();
+  }, 3800);
+}
+
+// ═══════════════════════════════════════════════════════
+// PARTICIPANT RESULTS
+// ═══════════════════════════════════════════════════════
+let participantListening = false;
+function startParticipantListening() {
+  if (participantListening || !db) return;
+  participantListening = true;
+  sessionRef.on("value", snap => {
+    const data = snap.val() || {participants:{}};
+    appState = { participants: data.participants || {} };
+    updateParticipantResultsUI();
+  });
+}
+
+function updateParticipantResultsUI() {
+  const screen = $("s-presults");
+  if (!screen.classList.contains("active")) return;
+  const all = getParticipantsArray();
+  const done = all.filter(p => p.submitted);
+  $("p-live-count").textContent = done.length;
+  $("p-sub-txt").textContent = done.length + " participant" + (done.length>1?"s":"") + " ont soumis leur évaluation";
+  const avgScores = computeAvgScores(done);
+  const globalAvg = done.length ? avg(CRITERIA.map(c => avgScores[c.id]||0)) : null;
+  $("p-kpi-avg").textContent = globalAvg ? globalAvg.toFixed(1)+"/10" : "—";
+  const ranked = buildRanked(avgScores, done.length > 0);
+  const rank = done.length ? ranked.findIndex(x=>x.isPerial)+1 : null;
+  $("p-kpi-rank").textContent = rank ? rank+"/"+ranked.length : "—";
+  if (done.length > 0) {
+    drawRadar($("p-radar-svg"), avgScores, 300);
+    renderCritRows($("p-crit-rows"), avgScores);
+  }
+}
+
+// ═══════════════════════════════════════════════════════
+// TOAST
+// ═══════════════════════════════════════════════════════
+function showToast(msg, ok=true) {
+  const t = $("toast");
+  $("toast-msg").textContent = msg;
+  $("toast-dot").style.background = ok ? "var(--green)" : "var(--red)";
+  t.classList.add("show");
+  setTimeout(() => t.classList.remove("show"), 3000);
+}
+
+// ═══════════════════════════════════════════════════════
+// INIT: check URL params
+// ═══════════════════════════════════════════════════════
+(function init() {
+  const params = new URLSearchParams(window.location.search);
+  if (params.get("join") === "1") {
+    showScreen("s-join");
+    // Start listening so participant results work
+    if (db) {
+      sessionRef.once("value", snap => {
+        const data = snap.val() || {participants:{}};
+        appState = { participants: data.participants || {} };
+      });
+    }
+  }
+})();
+</script>
+</body>
+</html>
