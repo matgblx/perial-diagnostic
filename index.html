@@ -554,7 +554,7 @@ table.bench { width: 100%; border-collapse: collapse; font-size: 12px; }
             <div id="a-participants-list" style="display:flex;flex-wrap:wrap;gap:7px;max-height:100px;overflow-y:auto;"></div>
           </div>
           <div style="position:relative;z-index:1;">
-            <svg id="radar-svg" viewBox="0 0 320 320" style="width:100%;display:block;filter:drop-shadow(0 8px 32px rgba(26,92,230,0.3));"></svg>
+            <svg id="radar-svg" viewBox="-20 -20 360 360" style="width:100%;display:block;filter:drop-shadow(0 8px 32px rgba(26,92,230,0.3));"></svg>
           </div>
         </div>
 
@@ -614,14 +614,14 @@ table.bench { width: 100%; border-collapse: collapse; font-size: 12px; }
 
 
     <!-- DETAIL -->
-  <div id="admin-detail" class="scroll-body" style="display:none;">
+  <div id="admin-detail" style="display:none;flex:1;overflow-y:auto;min-height:0;">
     <div class="inner">
       <div class="detail-grid">
-        <div class="card" style="overflow:hidden;">
+        <div class="card" style="overflow:hidden;position:sticky;top:24px;">
           <div style="padding:14px 16px;border-bottom:1px solid var(--border);background:var(--gray-xl);">
             <div style="font-family:var(--font-d);font-size:13px;font-weight:700;" id="d-count">Participants (0)</div>
           </div>
-          <div id="d-list"></div>
+          <div id="d-list" style="max-height:calc(100vh - 200px);overflow-y:auto;"></div>
         </div>
         <div id="d-panel">
           <div class="card card-pad" style="text-align:center;padding:48px 24px;">
@@ -811,7 +811,7 @@ table.bench { width: 100%; border-collapse: collapse; font-size: 12px; }
       </div>
       <div class="card card-pad" style="margin-bottom:16px;">
         <div class="section-title">Radar — Perial vs Marché</div>
-        <svg id="p-radar-svg" viewBox="0 0 300 300" style="width:100%;display:block;"></svg>
+        <svg id="p-radar-svg" viewBox="-20 -20 340 340" style="width:100%;display:block;"></svg>
         <div style="display:flex;gap:16px;justify-content:center;margin-top:14px;flex-wrap:wrap;">
           <div style="display:flex;align-items:center;gap:7px;font-size:12px;color:var(--ink3);"><div style="width:20px;height:3px;background:var(--blue);border-radius:2px;"></div>Perial</div>
           <div style="display:flex;align-items:center;gap:7px;font-size:12px;color:var(--ink3);"><div style="width:20px;height:0;border-top:2px dashed #00C27A;"></div>Néo-SCPI</div>
@@ -987,16 +987,19 @@ function switchAdminTab(tab) {
   adminCurrentTab = tab;
   $("tab-restit").classList.toggle("active", tab==="restit");
   $("tab-detail").classList.toggle("active", tab==="detail");
+  // Show/hide — use flex for detail so it fills height
   $("admin-restit").style.display = tab==="restit" ? "" : "none";
-  $("admin-verbatim").style.display = "none";
-  $("admin-detail").style.display = tab==="detail" ? "" : "none";
+  const detailEl = $("admin-detail");
   if (tab === "detail") {
+    detailEl.style.display = "flex";
+    detailEl.style.flexDirection = "column";
     renderDetailList();
-    // Auto-select first submitted participant if none selected
     if (!selectedDetailId) {
       const first = getParticipantsArray().find(p => p.submitted);
       if (first) selectDetail(first.id);
     }
+  } else {
+    detailEl.style.display = "none";
   }
 }
 
@@ -1248,9 +1251,9 @@ function drawRadar(svgEl, perialScores, size) {
   const dots = CRITERIA.map((c,i) => { const [px,py]=pt(perialScores[c.id]||0,i); return `<circle cx="${px.toFixed(1)}" cy="${py.toFixed(1)}" r="4" fill="#1A5CE6" stroke="#fff" stroke-width="2"/>`; }).join("");
 
   const labels = CRITERIA.map((c,i) => {
-    const a=angle(i), labR=r+22, lx=cx+labR*Math.cos(a), ly=cy+labR*Math.sin(a);
+    const a=angle(i), labR=r+26, lx=cx+labR*Math.cos(a), ly=cy+labR*Math.sin(a);
     const anchor = Math.abs(Math.cos(a))<0.1?"middle":Math.cos(a)>0?"start":"end";
-    return `<text x="${lx.toFixed(1)}" y="${(ly+4).toFixed(1)}" text-anchor="${anchor}" font-size="${size>300?9:8}" font-family="'DM Sans',sans-serif" fill="#374261" font-weight="500">${c.short}</text>`;
+    return `<text x="${lx.toFixed(1)}" y="${(ly+4).toFixed(1)}" text-anchor="${anchor}" font-size="${size>300?11:10}" font-family="'DM Sans',sans-serif" fill="#1C2640" font-weight="600">${c.short}</text>`;
   }).join("");
 
   svgEl.innerHTML = grid + spokes
