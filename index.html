@@ -1253,7 +1253,8 @@ function drawRadar(svgEl, perialScores, size) {
   const labels = CRITERIA.map((c,i) => {
     const a=angle(i), labR=r+26, lx=cx+labR*Math.cos(a), ly=cy+labR*Math.sin(a);
     const anchor = Math.abs(Math.cos(a))<0.1?"middle":Math.cos(a)>0?"start":"end";
-    return `<text x="${lx.toFixed(1)}" y="${(ly+4).toFixed(1)}" text-anchor="${anchor}" font-size="${size>300?11:10}" font-family="'DM Sans',sans-serif" fill="#1C2640" font-weight="600">${c.short}</text>`;
+    const isAdmin = size >= 320;
+    return `<text x="${lx.toFixed(1)}" y="${(ly+4).toFixed(1)}" text-anchor="${anchor}" font-size="${size>300?11:10}" font-family="'DM Sans',sans-serif" fill="${isAdmin ? '#FFFFFF' : '#1C2640'}" font-weight="600" opacity="${isAdmin ? '0.85' : '1'}">${c.short}</text>`;
   }).join("");
 
   svgEl.innerHTML = grid + spokes
