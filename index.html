@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-<title>Diagnostic Néo-SCPI — PÉRIAL AM</title>
+<title>Diagnostic Néo-SCPI — PERIAL AM</title>
 <link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;600;700;800&family=DM+Sans:ital,wght@0,300;0,400;0,500;0,600;1,400&display=swap" rel="stylesheet">
 
 <!-- Firebase SDK -->
@@ -358,6 +358,28 @@ table.bench { width: 100%; border-collapse: collapse; font-size: 12px; }
 .crit-fields { padding: 20px; border-top: 1px solid var(--border); display: flex; flex-direction: column; gap: 14px; }
 .crit-nav { padding: 16px 20px; border-top: 1px solid var(--border); display: flex; gap: 10px; }
 
+/* ─── AI SYNTHESIS ─── */
+.ai-crit-block { background:#fff; border:1px solid var(--border); border-radius:16px; overflow:hidden; margin-bottom:16px; box-shadow:var(--shadow); }
+.ai-crit-head { padding:18px 24px; background:var(--ink); display:flex; align-items:center; justify-content:space-between; }
+.ai-crit-head-left { display:flex; align-items:center; gap:14px; }
+.ai-crit-idx { width:32px; height:32px; border-radius:8px; background:rgba(26,92,230,0.3); display:flex; align-items:center; justify-content:center; font-size:12px; font-weight:800; color:#7AADFF; flex-shrink:0; }
+.ai-crit-name { font-family:'Syne',sans-serif; font-size:16px; font-weight:700; color:#fff; }
+.ai-score-chip { padding:5px 14px; border-radius:20px; font-size:12px; font-weight:800; }
+.ai-body { padding:24px; }
+.ai-section { margin-bottom:20px; }
+.ai-section:last-child { margin-bottom:0; }
+.ai-section-title { font-size:10px; font-weight:700; text-transform:uppercase; letter-spacing:.12em; color:var(--gray); margin-bottom:10px; display:flex; align-items:center; gap:8px; }
+.ai-section-title::after { content:''; flex:1; height:1px; background:var(--border); }
+.ai-bullet { display:flex; gap:10px; align-items:flex-start; margin-bottom:8px; }
+.ai-bullet-dot { width:6px; height:6px; border-radius:50%; flex-shrink:0; margin-top:5px; }
+.ai-bullet-txt { font-size:13px; color:var(--ink3); line-height:1.6; }
+.ai-verbatim-chip { display:inline-block; background:var(--gray-xl); border:1px solid var(--border); border-radius:8px; padding:8px 14px; font-size:12px; color:var(--ink3); font-style:italic; margin:4px; line-height:1.5; }
+.ai-verbatim-chip .chip-author { font-style:normal; font-weight:600; color:var(--gray); font-size:10px; display:block; margin-top:4px; }
+.ai-global { background:linear-gradient(135deg,var(--blue-l) 0%,#fff 100%); border:1px solid rgba(26,92,230,0.15); border-radius:16px; padding:24px 28px; margin-bottom:20px; }
+.ai-global-title { font-family:'Syne',sans-serif; font-size:15px; font-weight:800; color:var(--blue); margin-bottom:4px; }
+.ai-global-txt { font-size:14px; color:var(--ink3); line-height:1.7; }
+
+/* ─── RESPONSIVE DETAIL TABLE ─── */
 /* ─── RESPONSIVE DETAIL TABLE ─── */
 .crit-detail-row { display: grid; grid-template-columns: 1fr 3fr 52px 110px; align-items: center; gap: 14px; padding: 12px 20px; border-bottom: 1px solid var(--gray-xl); }
 .crit-detail-row:last-child { border-bottom: none; }
@@ -415,7 +437,7 @@ table.bench { width: 100%; border-collapse: collapse; font-size: 12px; }
         Reprendre la session en cours
       </button>
     </div>
-    <div class="landing-footer">PÉRIAL Asset Management · 2026</div>
+    <div class="landing-footer">PERIAL Asset Management · 2026</div>
   </div>
 </div>
 
@@ -455,6 +477,7 @@ table.bench { width: 100%; border-collapse: collapse; font-size: 12px; }
   </div>
   <div class="tabs">
     <button class="tab-btn active" id="tab-restit" onclick="switchAdminTab('restit')">Restitution collective</button>
+    <button class="tab-btn" id="tab-verbatim" onclick="switchAdminTab('verbatim')">Synthèse verbatims IA</button>
     <button class="tab-btn" id="tab-detail" onclick="switchAdminTab('detail')">Détail participants</button>
   </div>
 
@@ -465,7 +488,7 @@ table.bench { width: 100%; border-collapse: collapse; font-size: 12px; }
       <!-- KPIs -->
       <div class="kpi-grid" id="a-kpis">
         <div class="kpi"><div class="kpi-val" id="kpi-done">0</div><div class="kpi-lbl">Évaluations soumises</div></div>
-        <div class="kpi"><div class="kpi-val" id="kpi-avg">—</div><div class="kpi-lbl">Score moyen Périal</div></div>
+        <div class="kpi"><div class="kpi-val" id="kpi-avg">—</div><div class="kpi-lbl">Score moyen Perial</div></div>
         <div class="kpi"><div class="kpi-val" id="kpi-rank">—</div><div class="kpi-lbl">Classement / néo-SCPI</div></div>
         <div class="kpi"><div class="kpi-val" id="kpi-prio">—</div><div class="kpi-lbl">Axes prioritaires</div></div>
       </div>
@@ -518,10 +541,10 @@ table.bench { width: 100%; border-collapse: collapse; font-size: 12px; }
           <div style="position:absolute;top:20px;right:80px;width:160px;height:160px;border-radius:50%;border:1px solid rgba(26,92,230,0.15);"></div>
           <div style="position:relative;z-index:1;">
             <div style="font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.14em;color:#1A5CE6;margin-bottom:10px;">Positionnement stratégique</div>
-            <div style="font-family:var(--font-d);font-size:28px;font-weight:800;color:#fff;line-height:1.2;margin-bottom:14px;">Périal vs.<br>Marché néo-SCPI</div>
+            <div style="font-family:var(--font-d);font-size:28px;font-weight:800;color:#fff;line-height:1.2;margin-bottom:14px;">Perial vs.<br>Marché néo-SCPI</div>
             <div style="display:flex;gap:20px;flex-wrap:wrap;margin-bottom:24px;">
               <div style="display:flex;align-items:center;gap:8px;font-size:13px;color:rgba(255,255,255,0.6);">
-                <div style="width:24px;height:3px;background:#1A5CE6;border-radius:2px;"></div>Périal (consensus)
+                <div style="width:24px;height:3px;background:#1A5CE6;border-radius:2px;"></div>Perial (consensus)
               </div>
               <div style="display:flex;align-items:center;gap:8px;font-size:13px;color:rgba(255,255,255,0.6);">
                 <div style="width:24px;height:0;border-top:2px dashed #00C27A;"></div>Marché néo-SCPI
@@ -567,11 +590,57 @@ table.bench { width: 100%; border-collapse: collapse; font-size: 12px; }
               <div style="font-size:11px;color:var(--gray);">Données publiques 2024–2026</div>
             </div>
             <div class="bench-wrap"><table class="bench" id="a-bench-table"></table></div>
-            <div style="padding:10px 24px;font-size:10px;color:var(--gray);border-top:1px solid var(--border);">* Score Périal = moyenne des évaluations participants. Scores néo-SCPI basés sur données publiques. Capital non garanti.</div>
+            <div style="padding:10px 24px;font-size:10px;color:var(--gray);border-top:1px solid var(--border);">* Score Perial = moyenne des évaluations participants. Scores néo-SCPI basés sur données publiques. Capital non garanti.</div>
           </div>
         </div>
 
       </div>
+
+    </div>
+  </div>
+
+  <!-- VERBATIM AI SYNTHESIS -->
+  <div id="admin-verbatim" class="scroll-body" style="display:none;">
+    <div class="inner">
+
+      <!-- Intro bar -->
+      <div style="background:linear-gradient(120deg,var(--ink) 0%,#0E2050 100%);border-radius:20px;padding:28px 32px;margin-bottom:20px;display:flex;align-items:center;justify-content:space-between;gap:24px;position:relative;overflow:hidden;">
+        <div style="position:absolute;top:-40px;right:-40px;width:220px;height:220px;border-radius:50%;border:1px solid rgba(26,92,230,0.15);"></div>
+        <div style="position:relative;z-index:1;">
+          <div style="font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.14em;color:#7AADFF;margin-bottom:8px;">Intelligence Artificielle · Claude</div>
+          <div style="font-family:'Syne',sans-serif;font-size:22px;font-weight:800;color:#fff;margin-bottom:8px;">Synthèse des verbatims participants</div>
+          <div style="font-size:13px;color:rgba(255,255,255,0.5);max-width:500px;line-height:1.6;">Claude analyse l'ensemble des commentaires qualitatifs et pistes d'amélioration soumis par les participants, critère par critère, et en extrait les points saillants.</div>
+        </div>
+        <div style="position:relative;z-index:1;flex-shrink:0;">
+          <button id="btn-generate-ai" onclick="generateAISynthesis()" class="btn btn-primary btn-lg" style="background:var(--blue);box-shadow:0 6px 32px rgba(26,92,230,0.4);gap:10px;">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 2L2 7l10 5 10-5-10-5z"/><path d="M2 17l10 5 10-5"/><path d="M2 12l10 5 10-5"/></svg>
+            Générer la synthèse IA
+          </button>
+        </div>
+      </div>
+
+      <!-- Loading state -->
+      <div id="ai-loading" style="display:none;">
+        <div style="background:#fff;border:1px solid var(--border);border-radius:20px;padding:60px 40px;text-align:center;box-shadow:var(--shadow);">
+          <div style="display:flex;gap:8px;justify-content:center;margin-bottom:20px;">
+            <div style="width:10px;height:10px;border-radius:50%;background:var(--blue);animation:pd 1.2s 0s infinite;"></div>
+            <div style="width:10px;height:10px;border-radius:50%;background:var(--blue);animation:pd 1.2s .2s infinite;"></div>
+            <div style="width:10px;height:10px;border-radius:50%;background:var(--blue);animation:pd 1.2s .4s infinite;"></div>
+          </div>
+          <div style="font-family:'Syne',sans-serif;font-size:18px;font-weight:700;color:var(--ink);margin-bottom:8px;">Analyse en cours…</div>
+          <div style="font-size:13px;color:var(--gray);">Claude lit et synthétise tous les verbatims participants</div>
+        </div>
+      </div>
+
+      <!-- Empty state -->
+      <div id="ai-empty" style="background:#fff;border:1px solid var(--border);border-radius:20px;padding:60px 40px;text-align:center;box-shadow:var(--shadow);">
+        <div style="font-size:48px;margin-bottom:16px;">💬</div>
+        <div style="font-family:'Syne',sans-serif;font-size:18px;font-weight:700;color:var(--ink);margin-bottom:8px;">Aucun verbatim disponible</div>
+        <div style="font-size:13px;color:var(--gray);">Les participants doivent avoir soumis des commentaires pour générer une synthèse.</div>
+      </div>
+
+      <!-- Results -->
+      <div id="ai-results" style="display:none;"></div>
 
     </div>
   </div>
@@ -633,7 +702,7 @@ table.bench { width: 100%; border-collapse: collapse; font-size: 12px; }
   <path fill="#FFFFFF" d="M289.06,161.86v-64.4h7.27v57.68h36.25v6.72h-43.52Z"/>
 </svg>
     <h1 style="font-family:var(--font-d);font-size:28px;font-weight:800;color:var(--white);text-align:center;margin-bottom:8px;">Auto-diagnostic</h1>
-    <p style="font-size:14px;color:rgba(255,255,255,.45);text-align:center;margin-bottom:32px;max-width:280px;line-height:1.6;">Séminaire Stratégique Périal<br>Néo-SCPI 2026</p>
+    <p style="font-size:14px;color:rgba(255,255,255,.45);text-align:center;margin-bottom:32px;max-width:280px;line-height:1.6;">Séminaire Stratégique Perial<br>Néo-SCPI 2026</p>
     <div class="join-card">
       <div class="join-field">
         <label>Prénom & Nom <span class="req">*</span></label>
@@ -657,7 +726,7 @@ table.bench { width: 100%; border-collapse: collapse; font-size: 12px; }
   <div class="hdr">
     <div class="hdr-brand">
       <div class="logo"><svg viewBox="0 0 24 24" width="18" height="18" fill="none"><path d="M12 3L4 8.5V21H9.5V15H14.5V21H20V8.5L12 3Z" fill="white"/></svg></div>
-      <div class="logo-txt"><div class="logo-name">PÉRIAL AM</div><div class="logo-sub">Diagnostic</div></div>
+      <div class="logo-txt"><div class="logo-name">PERIAL AM</div><div class="logo-sub">Diagnostic</div></div>
     </div>
     <div id="f-step-label" style="font-size:12px;color:rgba(255,255,255,.4);"></div>
   </div>
@@ -675,7 +744,7 @@ table.bench { width: 100%; border-collapse: collapse; font-size: 12px; }
     <div class="hdr">
       <div class="hdr-brand">
         <div class="logo"><svg viewBox="0 0 24 24" width="18" height="18" fill="none"><path d="M12 3L4 8.5V21H9.5V15H14.5V21H20V8.5L12 3Z" fill="white"/></svg></div>
-        <div class="logo-txt"><div class="logo-name">PÉRIAL AM</div></div>
+        <div class="logo-txt"><div class="logo-name">PERIAL AM</div></div>
       </div>
     </div>
     <div class="ty-wrap">
@@ -699,7 +768,7 @@ table.bench { width: 100%; border-collapse: collapse; font-size: 12px; }
   <div class="hdr">
     <div class="hdr-brand">
       <div class="logo"><svg viewBox="0 0 24 24" width="18" height="18" fill="none"><path d="M12 3L4 8.5V21H9.5V15H14.5V21H20V8.5L12 3Z" fill="white"/></svg></div>
-      <div class="logo-txt"><div class="logo-name">PÉRIAL AM</div><div class="logo-sub">Restitution</div></div>
+      <div class="logo-txt"><div class="logo-name">PERIAL AM</div><div class="logo-sub">Restitution</div></div>
     </div>
     <div class="live-badge"><span class="live-dot"></span><span>Live · <span id="p-live-count">0</span></span></div>
   </div>
@@ -712,10 +781,10 @@ table.bench { width: 100%; border-collapse: collapse; font-size: 12px; }
         <div class="kpi"><div class="kpi-val" id="p-kpi-rank">—</div><div class="kpi-lbl">Classement</div></div>
       </div>
       <div class="card card-pad" style="margin-bottom:16px;">
-        <div class="section-title">Radar — Périal vs Marché</div>
+        <div class="section-title">Radar — Perial vs Marché</div>
         <svg id="p-radar-svg" viewBox="0 0 300 300" style="width:100%;display:block;"></svg>
         <div style="display:flex;gap:16px;justify-content:center;margin-top:14px;flex-wrap:wrap;">
-          <div style="display:flex;align-items:center;gap:7px;font-size:12px;color:var(--ink3);"><div style="width:20px;height:3px;background:var(--blue);border-radius:2px;"></div>Périal</div>
+          <div style="display:flex;align-items:center;gap:7px;font-size:12px;color:var(--ink3);"><div style="width:20px;height:3px;background:var(--blue);border-radius:2px;"></div>Perial</div>
           <div style="display:flex;align-items:center;gap:7px;font-size:12px;color:var(--ink3);"><div style="width:20px;height:0;border-top:2px dashed #00C27A;"></div>Néo-SCPI</div>
         </div>
       </div>
@@ -888,10 +957,13 @@ function generateQRMini() {
 function switchAdminTab(tab) {
   adminCurrentTab = tab;
   $("tab-restit").classList.toggle("active", tab==="restit");
+  $("tab-verbatim").classList.toggle("active", tab==="verbatim");
   $("tab-detail").classList.toggle("active", tab==="detail");
   $("admin-restit").style.display = tab==="restit" ? "" : "none";
+  $("admin-verbatim").style.display = tab==="verbatim" ? "" : "none";
   $("admin-detail").style.display = tab==="detail" ? "" : "none";
   if (tab === "detail") renderDetailList();
+  if (tab === "verbatim") initVerbatimTab();
 }
 
 // ═══════════════════════════════════════════════════════
@@ -952,7 +1024,7 @@ function computeAvgScores(done) {
 
 function buildRanked(avgScores, includePerial) {
   const list = [...BENCHMARK];
-  if (includePerial) list.push({ name:"Périal (consensus)", tag:"PÉRIAL AM", s: avgScores, isPerial: true });
+  if (includePerial) list.push({ name:"Perial (consensus)", tag:"PERIAL AM", s: avgScores, isPerial: true });
   return list.map(x => ({ ...x, avg: scpiAvg(x.s) })).sort((a,b) => b.avg - a.avg);
 }
 
@@ -1361,6 +1433,200 @@ function updateParticipantResultsUI() {
     drawRadar($("p-radar-svg"), avgScores, 300);
     renderCritRows($("p-crit-rows"), avgScores);
   }
+}
+
+// ═══════════════════════════════════════════════════════
+// AI VERBATIM SYNTHESIS
+// ═══════════════════════════════════════════════════════
+function initVerbatimTab() {
+  const done = getParticipantsArray().filter(p => p.submitted);
+  const hasVerbatims = done.some(p =>
+    CRITERIA.some(c => (p.comments && p.comments[c.id]?.trim()) || (p.improvements && p.improvements[c.id]?.trim()))
+  );
+  $("ai-empty").style.display = hasVerbatims ? "none" : "";
+  $("btn-generate-ai").style.display = hasVerbatims ? "" : "none";
+  if (!hasVerbatims) {
+    $("ai-results").style.display = "none";
+    $("ai-loading").style.display = "none";
+  }
+}
+
+async function generateAISynthesis() {
+  const done = getParticipantsArray().filter(p => p.submitted);
+  if (!done.length) return;
+
+  $("ai-loading").style.display = "";
+  $("ai-results").style.display = "none";
+  $("ai-empty").style.display = "none";
+  $("btn-generate-ai").disabled = true;
+
+  // Build prompt with all verbatims structured by criterion
+  const avgScores = computeAvgScores(done);
+
+  let verbatimData = CRITERIA.map(c => {
+    const comments = done.filter(p => p.comments?.[c.id]?.trim()).map(p => ({ author: p.name, role: p.role, text: p.comments[c.id].trim() }));
+    const improvements = done.filter(p => p.improvements?.[c.id]?.trim()).map(p => ({ author: p.name, role: p.role, text: p.improvements[c.id].trim() }));
+    return { criterion: c.name, score: avgScores[c.id]?.toFixed(1), comments, improvements };
+  }).filter(c => c.comments.length > 0 || c.improvements.length > 0);
+
+  const prompt = `Tu es un consultant expert en stratégie immobilière et SCPI. Tu assistes une société de gestion (PERIAL Asset Management) dans l'analyse des résultats de son séminaire stratégique.
+
+Voici les verbatims qualitatifs saisis par les participants lors du diagnostic néo-SCPI, critère par critère :
+
+${JSON.stringify(verbatimData, null, 2)}
+
+Pour CHAQUE critère qui a des verbatims, produis une analyse structurée en JSON avec ce format exact :
+{
+  "global_synthesis": "Une synthèse globale percutante de 2-3 phrases sur les grandes tendances qui ressortent de l'ensemble des verbatims",
+  "criteria": [
+    {
+      "id": "identifiant du critère",
+      "name": "nom du critère",
+      "score": "score moyen",
+      "key_insights": ["Point saillant 1 formulé de façon percutante", "Point saillant 2", "Point saillant 3 max"],
+      "convergences": "Ce sur quoi les participants s'accordent (1 phrase)",
+      "tensions": "Points de divergence ou de débat si pertinent (1 phrase, ou null si aucun)",
+      "top_actions": ["Action prioritaire 1 concrète", "Action prioritaire 2 concrète"]
+    }
+  ]
+}
+
+Règles : sois direct, professionnel, synthétique. Utilise le vocabulaire du secteur SCPI/immobilier. Ne répète pas mot pour mot les verbatims, synthétise et élève le niveau d'analyse. Réponds UNIQUEMENT avec le JSON, sans markdown ni balises.`;
+
+  try {
+    const response = await fetch("https://api.anthropic.com/v1/messages", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        model: "claude-sonnet-4-20250514",
+        max_tokens: 4000,
+        messages: [{ role: "user", content: prompt }]
+      })
+    });
+
+    const data = await response.json();
+    const text = data.content?.[0]?.text || "";
+    // Strip potential markdown fences
+    const clean = text.replace(/```json|```/g, "").trim();
+    const parsed = JSON.parse(clean);
+    renderAISynthesis(parsed, done, avgScores);
+  } catch(e) {
+    console.error("AI synthesis error:", e);
+    $("ai-loading").style.display = "none";
+    $("ai-results").innerHTML = `<div style="background:var(--red-l);border:1px solid var(--red);border-radius:14px;padding:24px;color:var(--red);font-size:14px;">Erreur lors de la génération. Vérifiez votre connexion et réessayez.</div>`;
+    $("ai-results").style.display = "";
+  } finally {
+    $("btn-generate-ai").disabled = false;
+  }
+}
+
+function renderAISynthesis(data, done, avgScores) {
+  $("ai-loading").style.display = "none";
+
+  let html = "";
+
+  // Global synthesis card
+  if (data.global_synthesis) {
+    html += `<div class="ai-global">
+      <div style="display:flex;align-items:center;gap:10px;margin-bottom:10px;">
+        <div style="width:36px;height:36px;border-radius:10px;background:var(--blue);display:flex;align-items:center;justify-content:center;flex-shrink:0;">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2"><path d="M12 2L2 7l10 5 10-5-10-5z"/><path d="M2 17l10 5 10-5"/><path d="M2 12l10 5 10-5"/></svg>
+        </div>
+        <div class="ai-global-title">Synthèse globale · ${done.length} participant${done.length>1?"s":""}</div>
+      </div>
+      <div class="ai-global-txt">${data.global_synthesis}</div>
+    </div>`;
+  }
+
+  // Per-criterion blocks
+  (data.criteria || []).forEach((crit, i) => {
+    const v = parseFloat(crit.score) || 0;
+    const col = scoreColor(v);
+    const bg = scoreBg(v);
+    const lbl = scoreLabel(v);
+
+    // Raw verbatims for this criterion
+    const done_arr = getParticipantsArray().filter(p => p.submitted);
+    const comments = done_arr.filter(p => p.comments?.[CRITERIA.find(c=>c.name===crit.name)?.id]?.trim())
+      .map(p => ({ author: p.name, text: p.comments[CRITERIA.find(c=>c.name===crit.name)?.id] }));
+    const improvs = done_arr.filter(p => p.improvements?.[CRITERIA.find(c=>c.name===crit.name)?.id]?.trim())
+      .map(p => ({ author: p.name, text: p.improvements[CRITERIA.find(c=>c.name===crit.name)?.id] }));
+
+    html += `<div class="ai-crit-block">
+      <div class="ai-crit-head">
+        <div class="ai-crit-head-left">
+          <div class="ai-crit-idx">${String(i+1).padStart(2,"0")}</div>
+          <div>
+            <div class="ai-crit-name">${crit.name}</div>
+            <div style="font-size:11px;color:rgba(255,255,255,0.4);margin-top:2px;">Score moyen : ${crit.score}/10</div>
+          </div>
+        </div>
+        <span class="ai-score-chip" style="background:${bg};color:${col};">${lbl}</span>
+      </div>
+      <div class="ai-body">
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:20px;">
+          <div>
+            <!-- Key insights -->
+            <div class="ai-section">
+              <div class="ai-section-title">Points saillants</div>
+              ${(crit.key_insights||[]).map(ins => `
+                <div class="ai-bullet">
+                  <div class="ai-bullet-dot" style="background:${col};"></div>
+                  <div class="ai-bullet-txt">${ins}</div>
+                </div>`).join("")}
+            </div>
+            <!-- Convergence -->
+            ${crit.convergences ? `<div class="ai-section">
+              <div class="ai-section-title">Convergence</div>
+              <div style="display:flex;gap:10px;align-items:flex-start;">
+                <div style="width:22px;height:22px;border-radius:6px;background:var(--green-l);display:flex;align-items:center;justify-content:center;flex-shrink:0;margin-top:1px;">
+                  <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="#059669" stroke-width="2.5"><polyline points="20 6 9 17 4 12"/></svg>
+                </div>
+                <div class="ai-bullet-txt">${crit.convergences}</div>
+              </div>
+            </div>` : ""}
+            <!-- Tensions -->
+            ${crit.tensions ? `<div class="ai-section">
+              <div class="ai-section-title">Point de débat</div>
+              <div style="display:flex;gap:10px;align-items:flex-start;">
+                <div style="width:22px;height:22px;border-radius:6px;background:var(--amber-l);display:flex;align-items:center;justify-content:center;flex-shrink:0;margin-top:1px;">
+                  <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="#D97706" stroke-width="2.5"><line x1="12" y1="5" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
+                </div>
+                <div class="ai-bullet-txt">${crit.tensions}</div>
+              </div>
+            </div>` : ""}
+            <!-- Actions -->
+            ${(crit.top_actions||[]).length ? `<div class="ai-section">
+              <div class="ai-section-title">Actions prioritaires</div>
+              ${crit.top_actions.map((a,ai) => `
+                <div class="ai-bullet">
+                  <div style="width:20px;height:20px;border-radius:6px;background:var(--blue-l);color:var(--blue);font-size:10px;font-weight:800;display:flex;align-items:center;justify-content:center;flex-shrink:0;">${ai+1}</div>
+                  <div class="ai-bullet-txt" style="font-weight:500;color:var(--ink2);">${a}</div>
+                </div>`).join("")}
+            </div>` : ""}
+          </div>
+          <div>
+            <!-- Raw verbatims -->
+            ${comments.length ? `<div class="ai-section">
+              <div class="ai-section-title">Analyses qualitatives</div>
+              <div style="display:flex;flex-direction:column;gap:8px;">
+                ${comments.map(c => `<div class="ai-verbatim-chip">"${c.text}"<span class="chip-author">${c.author}</span></div>`).join("")}
+              </div>
+            </div>` : ""}
+            ${improvs.length ? `<div class="ai-section">
+              <div class="ai-section-title">Pistes d'amélioration</div>
+              <div style="display:flex;flex-direction:column;gap:8px;">
+                ${improvs.map(c => `<div class="ai-verbatim-chip" style="background:var(--green-l);border-color:rgba(5,150,105,0.15);">"${c.text}"<span class="chip-author">${c.author}</span></div>`).join("")}
+              </div>
+            </div>` : ""}
+          </div>
+        </div>
+      </div>
+    </div>`;
+  });
+
+  $("ai-results").innerHTML = html;
+  $("ai-results").style.display = "";
 }
 
 // ═══════════════════════════════════════════════════════
