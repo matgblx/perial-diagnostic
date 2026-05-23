@@ -568,7 +568,7 @@ table.bench { width: 100%; border-collapse: collapse; font-size: 12px; }
               <span style="display:flex;align-items:center;gap:5px;"><span style="width:10px;height:10px;border-radius:50%;background:#22C55E;display:inline-block;"></span>Capital. &gt;8</span>
             </div>
           </div>
-          <div id="a-crit-rows" style="padding:16px;"></div>
+          <div id="a-crit-rows"></div>
         </div>
 
         <!-- ROW 3: Priority columns -->
@@ -1021,6 +1021,13 @@ function updateAdminUI() {
     renderCritRows($("a-crit-rows"), avgScores, true);
     renderPrioGrid(prio);
     renderBenchTable(allRanked);
+    // Verbatims
+    const verbSection = $("a-verbatim-section");
+    const verbCards = $("a-verbatim-cards");
+    if (verbSection && verbCards) {
+      renderVerbatims(verbCards);
+      verbSection.style.display = verbCards.innerHTML.trim() ? "" : "none";
+    }
     renderParticipantsList(all);
   }
 
@@ -1061,69 +1068,28 @@ function renderCritRows(container, avgScores, twoCol) {
     const gapSign = v >= mkt ? "+" : "";
 
     if (twoCol) {
-      // Gather verbatims
-      const comments = done.filter(p => p.comments?.[c.id]?.trim()).map(p => ({ name: p.name, text: p.comments[c.id].trim() }));
-      const improvs   = done.filter(p => p.improvements?.[c.id]?.trim()).map(p => ({ name: p.name, text: p.improvements[c.id].trim() }));
-      const hasVerb = comments.length > 0 || improvs.length > 0;
-
-      const bubble = (item, bgColor, textColor, borderColor) =>
-        `<div style="background:${bgColor};border:1px solid ${borderColor};border-radius:12px;padding:10px 14px;margin-bottom:8px;">
-          <div style="font-size:13px;color:${textColor};line-height:1.55;">"${item.text}"</div>
-          <div style="font-size:10px;font-weight:700;color:var(--gray);margin-top:5px;text-transform:uppercase;letter-spacing:.06em;">${item.name}</div>
-        </div>`;
-
-      const emptyBubble = (label) =>
-        `<div style="background:var(--gray-xl);border:1px dashed var(--gray-l);border-radius:12px;padding:12px 14px;text-align:center;color:var(--gray);font-size:12px;font-style:italic;">${label}</div>`;
-
-      return `<div style="background:#fff;border:1px solid var(--border);border-radius:16px;overflow:hidden;margin-bottom:14px;box-shadow:var(--shadow);">
-        <!-- Header: score + bar -->
-        <div style="padding:18px 22px 14px;border-bottom:1px solid var(--border);">
-          <div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:10px;">
-            <div>
-              <div style="font-family:var(--font-d);font-size:16px;font-weight:800;color:var(--ink);">${c.name}</div>
-              <div style="display:flex;align-items:center;gap:8px;margin-top:5px;">
-                <span class="badge ${scoreClass(v)}" style="font-size:10px;padding:3px 10px;">${scoreLabel(v)}</span>
-                <span style="font-size:11px;color:${gapCol};font-weight:700;">${gapSign}${gap} vs marché</span>
-              </div>
-            </div>
-            <div style="text-align:right;">
-              <div style="font-family:var(--font-d);font-weight:800;font-size:42px;color:${col};line-height:1;">${v.toFixed(1)}</div>
-              <div style="font-size:10px;color:var(--gray);margin-top:1px;">/ 10</div>
+      return `<div style="padding:18px 22px;border-bottom:1px solid var(--gray-xl);">
+        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:10px;">
+          <div>
+            <div style="font-family:var(--font-d);font-size:15px;font-weight:800;color:var(--ink);">${c.name}</div>
+            <div style="display:flex;align-items:center;gap:8px;margin-top:5px;">
+              <span class="badge ${scoreClass(v)}" style="font-size:10px;padding:3px 10px;">${scoreLabel(v)}</span>
+              <span style="font-size:11px;color:${gapCol};font-weight:700;">${gapSign}${gap} vs marché</span>
             </div>
           </div>
-          <div style="position:relative;height:8px;background:var(--gray-xl);border-radius:4px;overflow:hidden;">
-            <div style="position:absolute;left:0;top:0;height:100%;width:${(mkt/10*100).toFixed(0)}%;background:rgba(0,194,122,0.18);"></div>
-            <div style="position:absolute;left:0;top:0;height:100%;width:${(v/10*100).toFixed(0)}%;background:${col};border-radius:4px;transition:width .6s;"></div>
-          </div>
-          <div style="font-size:10px;color:var(--gray);margin-top:4px;">Marché néo-SCPI : ${mkt.toFixed(1)}/10</div>
-        </div>
-        <!-- Two columns: Analyse / Pistes -->
-        <div style="display:grid;grid-template-columns:1fr 1fr;">
-          <!-- Analyse qualitative -->
-          <div style="padding:16px 18px;border-right:1px solid var(--border);">
-            <div style="font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.1em;color:var(--blue);margin-bottom:12px;display:flex;align-items:center;gap:7px;">
-              <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>
-              Analyse qualitative
-            </div>
-            ${comments.length > 0
-              ? comments.map(it => bubble(it, 'var(--blue-l)', 'var(--ink3)', 'rgba(26,92,230,0.15)')).join('')
-              : emptyBubble('Aucun commentaire')}
-          </div>
-          <!-- Pistes d'amélioration -->
-          <div style="padding:16px 18px;">
-            <div style="font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.1em;color:var(--green);margin-bottom:12px;display:flex;align-items:center;gap:7px;">
-              <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="13 17 18 12 13 7"/><polyline points="6 17 11 12 6 7"/></svg>
-              Pistes d'amélioration
-            </div>
-            ${improvs.length > 0
-              ? improvs.map(it => bubble(it, 'var(--green-l)', 'var(--ink3)', 'rgba(5,150,105,0.2)')).join('')
-              : emptyBubble('Aucune piste saisie')}
+          <div style="text-align:right;">
+            <div style="font-family:var(--font-d);font-weight:800;font-size:40px;color:${col};line-height:1;">${v.toFixed(1)}</div>
+            <div style="font-size:10px;color:var(--gray);">/ 10</div>
           </div>
         </div>
+        <div style="position:relative;height:8px;background:var(--gray-xl);border-radius:4px;overflow:hidden;">
+          <div style="position:absolute;left:0;top:0;height:100%;width:${(mkt/10*100).toFixed(0)}%;background:rgba(0,194,122,0.18);"></div>
+          <div style="position:absolute;left:0;top:0;height:100%;width:${(v/10*100).toFixed(0)}%;background:${col};border-radius:4px;transition:width .6s;"></div>
+        </div>
+        <div style="font-size:10px;color:var(--gray);margin-top:4px;">Marché néo-SCPI : ${mkt.toFixed(1)}/10</div>
       </div>`;
     }
-
-    // Simple mobile version (unchanged)
+    // Mobile simple
     return `<div style="padding:13px 18px;border-bottom:1px solid var(--gray-xl);">
       <div style="display:flex;justify-content:space-between;margin-bottom:6px;">
         <span style="font-size:13px;font-weight:600;color:var(--ink2);">${c.name}</span>
@@ -1136,6 +1102,65 @@ function renderCritRows(container, avgScores, twoCol) {
       </div>
     </div>`;
   }).join("");
+}
+
+
+
+function renderVerbatims(container) {
+  const done = getParticipantsArray().filter(p => p.submitted);
+  if (!done.length) { container.innerHTML = ''; return; }
+
+  const hasAny = CRITERIA.some(c =>
+    done.some(p => p.comments?.[c.id]?.trim() || p.improvements?.[c.id]?.trim())
+  );
+  if (!hasAny) { container.innerHTML = ''; return; }
+
+  container.innerHTML = CRITERIA.map(c => {
+    const comments = done.filter(p => p.comments?.[c.id]?.trim()).map(p => p.comments[c.id].trim());
+    const improvs  = done.filter(p => p.improvements?.[c.id]?.trim()).map(p => p.improvements[c.id].trim());
+    if (!comments.length && !improvs.length) return '';
+
+    const v = parseFloat(container.dataset.avg || 5);
+    const col = scoreColor(parseFloat(done.reduce((s,p)=>(s+(p.scores?.[c.id]||5)),0)/done.length));
+
+    const bubble = (txt, bg, border, txtCol) =>
+      `<div style="background:${bg};border:1px solid ${border};border-radius:12px;padding:11px 15px;font-size:13px;color:${txtCol};line-height:1.6;">${txt}</div>`;
+
+    return `<div style="background:#fff;border:1px solid var(--border);border-radius:16px;overflow:hidden;margin-bottom:14px;box-shadow:var(--shadow);">
+      <!-- Criterion header -->
+      <div style="padding:14px 20px;background:var(--ink);display:flex;align-items:center;gap:12px;">
+        <div style="font-family:var(--font-d);font-size:15px;font-weight:800;color:#fff;flex:1;">${c.name}</div>
+        <span class="badge ${scoreClass(parseFloat(done.reduce((s,p)=>(s+(p.scores?.[c.id]||5)),0)/done.length))}" style="font-size:10px;">${scoreLabel(parseFloat(done.reduce((s,p)=>(s+(p.scores?.[c.id]||5)),0)/done.length))}</span>
+      </div>
+      <!-- Two columns -->
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:0;">
+        <!-- Analyse -->
+        <div style="padding:16px 18px;border-right:1px solid var(--border);">
+          <div style="font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.1em;color:var(--blue);margin-bottom:12px;display:flex;align-items:center;gap:6px;">
+            <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>
+            Analyse qualitative
+          </div>
+          <div style="display:flex;flex-direction:column;gap:8px;">
+            ${comments.length
+              ? comments.map(t => bubble(t, 'var(--blue-l)', 'rgba(26,92,230,0.15)', 'var(--ink3)')).join('')
+              : `<div style="color:var(--gray-l);font-size:12px;font-style:italic;padding:8px 0;">Aucun commentaire</div>`}
+          </div>
+        </div>
+        <!-- Pistes -->
+        <div style="padding:16px 18px;">
+          <div style="font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.1em;color:var(--green);margin-bottom:12px;display:flex;align-items:center;gap:6px;">
+            <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="13 17 18 12 13 7"/><polyline points="6 17 11 12 6 7"/></svg>
+            Pistes d'amélioration
+          </div>
+          <div style="display:flex;flex-direction:column;gap:8px;">
+            ${improvs.length
+              ? improvs.map(t => bubble(t, 'var(--green-l)', 'rgba(5,150,105,0.2)', 'var(--ink3)')).join('')
+              : `<div style="color:var(--gray-l);font-size:12px;font-style:italic;padding:8px 0;">Aucune piste saisie</div>`}
+          </div>
+        </div>
+      </div>
+    </div>`;
+  }).filter(Boolean).join('');
 }
 
 function renderPrioGrid(prio) {
