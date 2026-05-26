@@ -867,12 +867,19 @@ const SCALE = [
 ];
 
 const BENCHMARK = [
-  {name:"Iroko Zen",          tag:"Iroko",          s:{rendement:9,distrib:9,frais:10,liquidite:8,transpa:8,access:9,collecte:8,innov:7,expclient:8,fordistrib:8}},
-  {name:"Remake Live",        tag:"Remake AM",      s:{rendement:9,distrib:9,frais:10,liquidite:8,transpa:8,access:8,collecte:8,innov:8,expclient:8,fordistrib:8}},
-  {name:"Transitions Europe", tag:"Arkéa REIM",     s:{rendement:9,distrib:9,frais:7, liquidite:7,transpa:7,access:7,collecte:9,innov:9,expclient:7,fordistrib:8}},
-  {name:"Mistral Sélection",  tag:"Swiss Life REIM",s:{rendement:8,distrib:8,frais:10,liquidite:7,transpa:8,access:9,collecte:7,innov:7,expclient:8,fordistrib:9}},
-  {name:"Novaxia Néo",        tag:"Novaxia Invest.",s:{rendement:7,distrib:7,frais:10,liquidite:7,transpa:8,access:9,collecte:7,innov:8,expclient:8,fordistrib:7}},
-  {name:"Corum Origin",       tag:"Corum AM",       s:{rendement:8,distrib:7,frais:5, liquidite:6,transpa:9,access:7,collecte:8,innov:8,expclient:7,fordistrib:9}},
+  // Données vérifiées mai 2026 — Sources: Primaliance, Louve Invest, SCPI-Lab, bulletins T4 2025
+  {name:"Iroko Zen",          tag:"Iroko",           s:{rendement:9, distrib:9, frais:10,liquidite:8,transpa:8,access:9,collecte:8,innov:7,expclient:8,fordistrib:8}},
+  // TD 7.14% 2025, 0% frais, TOF 97% → notes stables
+  {name:"Remake Live",        tag:"Remake AM",       s:{rendement:8, distrib:8, frais:10,liquidite:8,transpa:8,access:8,collecte:8,innov:8,expclient:8,fordistrib:8}},
+  // TD 7.05% 2025 (vs 7.50% en 2024, légère baisse) → rendement et distrib -1
+  {name:"Transitions Europe", tag:"Arkéa REIM",      s:{rendement:9, distrib:9, frais:4, liquidite:7,transpa:7,access:7,collecte:10,innov:9,expclient:7,fordistrib:9}},
+  // TD 7.60% 2025 - FRAIS 12% confirmés (noté 7 par erreur) → frais 4, collecte record (1er marché), fordistrib +1
+  {name:"Mistral Sélection",  tag:"Swiss Life REIM", s:{rendement:10,distrib:9, frais:10,liquidite:7,transpa:7,access:9,collecte:6,innov:7,expclient:7,fordistrib:8}},
+  // TD 8.07% 2025 premier exercice complet, 0% frais → rendement 10, distrib 9; SCPI très jeune donc collecte/distrib réseau encore en construction
+  {name:"Novaxia Néo",        tag:"Novaxia Invest.", s:{rendement:6, distrib:6, frais:10,liquidite:5,transpa:8,access:9,collecte:6,innov:8,expclient:8,fordistrib:7}},
+  // TD 5.50% 2025 (recul net), 92k parts retrait en attente, TOF 90.6% → rendement -1, distrib -1, liquidité -2, collecte -1
+  {name:"Corum Origin",       tag:"Corum AM",        s:{rendement:7, distrib:7, frais:4, liquidite:6,transpa:9,access:6,collecte:8,innov:8,expclient:7,fordistrib:9}},
+  // TD 6.50% 2025 (rebond), frais 12% confirmés (noté 5 par erreur → 4), ticket min 1135€ → access -1
 ];
 
 // ═══════════════════════════════════════════════════════
