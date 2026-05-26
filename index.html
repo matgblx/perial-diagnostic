@@ -520,7 +520,7 @@ table.bench { width: 100%; border-collapse: collapse; font-size: 12px; }
               </div>
               <div style="display:flex;gap:12px;align-items:flex-start;">
                 <div style="width:28px;height:28px;border-radius:8px;background:var(--blue-l);color:var(--blue);display:flex;align-items:center;justify-content:center;font-weight:800;font-size:13px;flex-shrink:0;margin-top:1px;">3</div>
-                <div style="font-size:13px;color:var(--ink3);line-height:1.55;">Ils notent la SCPI sur les 10 critères clés pas à pas</div>
+                <div style="font-size:13px;color:var(--ink3);line-height:1.55;">Ils notent PERIAL sur les 10 critères clés pas à pas</div>
               </div>
               <div style="display:flex;gap:12px;align-items:flex-start;">
                 <div style="width:28px;height:28px;border-radius:8px;background:var(--blue-l);color:var(--blue);display:flex;align-items:center;justify-content:center;font-weight:800;font-size:13px;flex-shrink:0;margin-top:1px;">4</div>
@@ -851,7 +851,7 @@ const CRITERIA = [
   {id:"frais",     name:"Absence de frais d'entrée", short:"Frais", desc:"Les néo-SCPI ont supprimé les frais de souscription (5–12% chez les SCPI classiques). Un score 10 = 0% de frais d'entrée, amélioration immédiate du rendement."},
   {id:"liquidite", name:"Liquidité / Facilité de sortie", short:"Liquid.", desc:"Capacité à revendre ses parts dans des délais raisonnables. Les leaders proposent des fenêtres de rachat trimestrielles avec délais < 3 mois."},
   {id:"transpa",   name:"Transparence", short:"Transpa.", desc:"Qualité et fréquence du reporting : lettres trimestrielles détaillées, données patrimoniales accessibles, politique d'investissement lisible, communication proactive."},
-  {id:"access",    name:"Accessibilité", short:"Access.", desc:"Ticket minimum d'investissement (idéalement < 500€, voire achat de fractions) et disponibilité sur plateformes digitales et en assurance-vie."},
+  {id:"access",    name:"Accessibilité", short:"Access.", desc:"Ticket minimum d'investissement et disponibilité sur plateformes digitales et en assurance-vie. Les tickets varient de 180€ (Mistral Sélection, 1 part) à 5 100€ (Iroko Zen, 25 parts min.). Novaxia Néo accessible dès 187€ (1 part), Remake Live dès 1 020€, Transitions Europe dès 1 010€ (5 parts × 202€)."},
   {id:"collecte",  name:"Rapidité collecte / déploiement", short:"Collecte", desc:"Capacité à lever les capitaux rapidement et à les investir efficacement. La trésorerie non déployée dilue le rendement : les leaders déploient en < 3 mois."},
   {id:"innov",     name:"Innovation produit", short:"Innov.", desc:"Thématiques différenciantes (santé, logistique, résidentiel géré), engagement ESG documenté et crédible, diversification géographique hors France."},
   {id:"expclient", name:"Expérience client", short:"Exp. CX", desc:"Parcours de souscription 100% digital, espace associé en ligne performant, service client réactif, communication personnalisée et proactive."},
@@ -1374,7 +1374,7 @@ function renderFormStep() {
 function renderGuideStep() {
   $("f-content").innerHTML = `
     <div style="font-family:var(--font-d);font-size:24px;font-weight:800;color:var(--ink);margin-bottom:8px;">Avant de commencer</div>
-    <p style="font-size:14px;color:var(--ink3);margin-bottom:24px;line-height:1.65;">Vous allez noter votre SCPI sur <strong>10 critères clés</strong> des néo-SCPI. Chaque critère est noté de <strong>1 à 10</strong>. Voici comment interpréter l'échelle :</p>
+    <p style="font-size:14px;color:var(--ink3);margin-bottom:24px;line-height:1.65;">Vous allez noter <strong>PERIAL</strong> sur <strong>10 critères clés</strong> caractérisant les axes de différenciation des néo-SCPI. Chaque critère est noté de <strong>1 à 10</strong>. Voici comment interpréter l'échelle :</p>
     <div style="display:flex;flex-direction:column;gap:10px;margin-bottom:28px;">
       ${SCALE.map(s => `
         <div class="scale-item">
